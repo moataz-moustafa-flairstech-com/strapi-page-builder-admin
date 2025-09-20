@@ -3,7 +3,10 @@
 const fs = require('fs-extra');
 const path = require('path');
 const mime = require('mime-types');
-const { categories, authors, articles, global, about } = require('../data/data.json');
+const seedData = require('../data/data.json');
+const { categories, authors, articles, global, about } = seedData;
+const pageTemplates = seedData['page-templates'] || [];
+const pages = seedData['pages'] || [];
 
 async function seedExampleApp() {
   const shouldImportSeedData = await isFirstRun();
@@ -252,6 +255,51 @@ async function importSeedData() {
   await importArticles();
   await importGlobal();
   await importAbout();
+
+  // Import page templates and pages if present in data.json
+  if (pageTemplates.length) {
+    console.log('Importing page templates...');
+    await importPageTemplates();
+  }
+  if (pages.length) {
+    console.log('Importing pages...');
+    await importPages();
+  }
+}
+
+async function importPageTemplates() {
+  for (const tpl of pageTemplates) {
+    try {
+      await createEntry({ model: 'page-template', entry: tpl });
+    } catch (error) {
+      console.error('Error creating page-template', tpl, error);
+    }
+  }
+}
+
+async function importPages() {
+  for (const p of pages) {
+    try {
+      // Ensure any media blocks are uploaded like articles
+      const sections = [];
+      for (const section of p.sections || []) {
+        const updatedBlocks = await updateBlocks(section.blocks || []);
+        sections.push({ ...section, blocks: updatedBlocks });
+      }
+
+      await createEntry({
+        model: 'page',
+        entry: {
+          ...p,
+          sections,
+          // publish the page
+          publishedAt: Date.now(),
+        },
+      });
+    } catch (error) {
+      console.error('Error creating page', p, error);
+    }
+  }
 }
 
 async function main() {

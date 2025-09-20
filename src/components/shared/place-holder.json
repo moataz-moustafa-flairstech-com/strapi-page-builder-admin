@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_shared_place_holders",
+  "info": {
+    "displayName": "Place Holder",
+    "icon": "layer-group",
+    "description": "Recursive container for organizing layout blocks with configurable arrangement"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "ui_identifier": {
+      "type": "string"
+    },
+    "blocks_repeat": {
+      "type": "enumeration",
+      "enum": ["horizontal", "vertical"],
+      "default": "vertical"
+    },
+    "blocks": {
+      "type": "dynamiczone",
+      "components": [
+        "shared.place-holder"
+      ]
+    }
+  }
+}

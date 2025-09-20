@@ -238,4 +238,63 @@
       ]
     }
   ]
+  ,
+  "page-templates": [
+    {
+      "name": "Default two-column",
+      "layout": {
+        "name": "root",
+        "ui_identifier": "root",
+        "blocks_repeat": "vertical",
+        "blocks": [
+          {
+            "__component": "shared.place-holder",
+            "name": "main",
+            "ui_identifier": "main",
+            "blocks_repeat": "vertical",
+            "blocks": []
+          },
+          {
+            "__component": "shared.place-holder",
+            "name": "sidebar",
+            "ui_identifier": "sidebar",
+            "blocks_repeat": "vertical",
+            "blocks": []
+          }
+        ]
+      }
+    }
+  ],
+  "pages": [
+    {
+      "name": "Home - Example",
+      "slug": "home-example",
+      "page_template": {
+        "id": 1
+      },
+      "sections": [
+        {
+          "name": "Hero",
+          "place_holder_ui_indentifier": "main",
+          "blocks": [
+            {
+              "__component": "shared.rich-text",
+              "body": "# Welcome\n\nThis is the hero section."
+            }
+          ]
+        },
+        {
+          "name": "Promo",
+          "place_holder_ui_indentifier": "sidebar",
+          "blocks": [
+            {
+              "__component": "shared.quote",
+              "title": "Promo",
+              "body": "Sign up now"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
