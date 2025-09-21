@@ -33,6 +33,13 @@ async function isFirstRun() {
     type: 'type',
     name: 'setup',
   });
+  // If FORCE_SEED is set we want to force the seed to run (useful for re-imports)
+  if (process.env.FORCE_SEED === 'true') {
+    // mark as run and return true so import proceeds
+    await pluginStore.set({ key: 'initHasRun', value: true });
+    return true;
+  }
+
   const initHasRun = await pluginStore.get({ key: 'initHasRun' });
   await pluginStore.set({ key: 'initHasRun', value: true });
   return !initHasRun;

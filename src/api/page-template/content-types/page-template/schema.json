@@ -19,8 +19,8 @@
     },
     "layout": {
       "type": "component",
-      "repeatable": false,
-      "component": "shared.place-holder",
+      "repeatable": true,
+      "component": "shared.layout-repeater",
       "required": true
     },
     "pages": {

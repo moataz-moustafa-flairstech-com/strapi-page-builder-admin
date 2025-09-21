@@ -18,12 +18,7 @@
       "type": "enumeration",
       "enum": ["horizontal", "vertical"],
       "default": "vertical"
-    },
-    "blocks": {
-      "type": "dynamiczone",
-      "components": [
-        "shared.place-holder"
-      ]
     }
+    
   }
 }

@@ -554,7 +554,7 @@ export interface ApiPageTemplatePageTemplate
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    layout: Schema.Attribute.Component<'shared.place-holder', false> &
+    layout: Schema.Attribute.Component<'shared.layout-repeater', true> &
       Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<

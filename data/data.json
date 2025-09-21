@@ -242,27 +242,45 @@
   "page-templates": [
     {
       "name": "Default two-column",
-      "layout": {
-        "name": "root",
-        "ui_identifier": "root",
-        "blocks_repeat": "vertical",
-        "blocks": [
-          {
-            "__component": "shared.place-holder",
-            "name": "main",
-            "ui_identifier": "main",
-            "blocks_repeat": "vertical",
-            "blocks": []
-          },
-          {
-            "__component": "shared.place-holder",
-            "name": "sidebar",
-            "ui_identifier": "sidebar",
-            "blocks_repeat": "vertical",
-            "blocks": []
-          }
-        ]
-      }
+      "layout": [
+        {
+          "name": "header",
+          "blocks": [
+            {
+              "__component": "shared.place-holder",
+              "name": "header",
+              "ui_identifier": "header"
+            }
+          ]
+        },
+        {
+          "name": "middle",
+          "blocks_repeat": "horizontal",
+          "blocks_resizable": true,
+          "blocks": [
+            {
+              "__component": "shared.place-holder",
+              "name": "side-panel",
+              "ui_identifier": "side-panel"
+            },
+            {
+              "__component": "shared.place-holder",
+              "name": "middle-content",
+              "ui_identifier": "middle-content"
+            }
+          ]
+        },
+        {
+          "name": "footer",
+          "blocks": [
+            {
+              "__component": "shared.place-holder",
+              "name": "footer",
+              "ui_identifier": "footer"
+            }
+          ]
+        }
+      ]
     }
   ],
   "pages": [
@@ -274,8 +292,18 @@
       },
       "sections": [
         {
+          "name": "header",
+          "place_holder_ui_indentifier": "header",
+          "blocks": [
+            {
+              "__component": "shared.media",
+                "file": "beautiful-picture.jpg"
+            }
+          ]
+        },
+        {
           "name": "Hero",
-          "place_holder_ui_indentifier": "main",
+          "place_holder_ui_indentifier": "middle-content",
           "blocks": [
             {
               "__component": "shared.rich-text",
@@ -285,12 +313,22 @@
         },
         {
           "name": "Promo",
-          "place_holder_ui_indentifier": "sidebar",
+          "place_holder_ui_indentifier": "side-panel",
           "blocks": [
             {
               "__component": "shared.quote",
               "title": "Promo",
               "body": "Sign up now"
+            }
+          ]
+        },
+        {
+          "name": "footer",
+          "place_holder_ui_indentifier": "header",
+          "blocks": [
+            {
+              "__component": "shared.rich-text",
+              "body": "copy rights reserved."
             }
           ]
         }

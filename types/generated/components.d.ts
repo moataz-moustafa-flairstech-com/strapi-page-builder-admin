@@ -15,6 +15,23 @@ export interface SharedExternalContent extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedLayoutRepeater extends Struct.ComponentSchema {
+  collectionName: 'components_shared_layout_repeaters';
+  info: {
+    description: 'Repeater that groups placeholders into layout rows/columns';
+    displayName: 'Layout Repeater';
+    icon: 'th-large';
+  };
+  attributes: {
+    blocks: Schema.Attribute.Component<'shared.place-holder', true>;
+    blocks_repeat: Schema.Attribute.Enumeration<['horizontal', 'vertical']> &
+      Schema.Attribute.DefaultTo<'vertical'>;
+    blocks_resizable: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface SharedMedia extends Struct.ComponentSchema {
   collectionName: 'components_shared_media';
   info: {
@@ -57,7 +74,6 @@ export interface SharedPlaceHolder extends Struct.ComponentSchema {
     icon: 'layer-group';
   };
   attributes: {
-    blocks: Schema.Attribute.Component<'shared.place-holder', true>;
     blocks_repeat: Schema.Attribute.Enumeration<['horizontal', 'vertical']> &
       Schema.Attribute.DefaultTo<'vertical'>;
     name: Schema.Attribute.String & Schema.Attribute.Required;
@@ -120,6 +136,7 @@ declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
       'shared.external-content': SharedExternalContent;
+      'shared.layout-repeater': SharedLayoutRepeater;
       'shared.media': SharedMedia;
       'shared.page-section': SharedPageSection;
       'shared.place-holder': SharedPlaceHolder;
