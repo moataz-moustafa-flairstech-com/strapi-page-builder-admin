@@ -8,6 +8,15 @@ const getPreviewPathname = (uid, { locale, document }) => {
       }
       return `/articles/${slug}`; // Individual article page
     }
+    case "api::page.page": {
+      // Pages use a simple slug-based route in the example frontend.
+      // If a page has no slug, return the home page path.
+      if (!slug) {
+        return '/pages';
+      }
+      // You can customize this to match your frontend routing (e.g. /pages/:slug or /:slug)
+      return `/pages/${slug}`;
+    }
     default:
       return null;
   }
