@@ -24,6 +24,12 @@
         "shared.rich-text",
         "shared.slider"
       ]
+    },
+    "style": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.page-section-styling-options",
+      "required": false
     }
   }
 }

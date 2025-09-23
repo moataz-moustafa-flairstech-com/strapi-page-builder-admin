@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_shared_page_styling_options",
+  "info": {
+    "displayName": "Page Styling Options",
+    "icon": "palette",
+    "description": "Styling options for pages including background color and image"
+  },
+  "options": {},
+  "attributes": {
+    "background_color": {
+      "type": "string",
+      "customField": "plugin::color-picker.color",
+      "pluginOptions": {
+        "color-picker": {
+          "format": "hex"
+        }
+      }
+    },
+    "background_image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

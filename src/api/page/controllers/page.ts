@@ -72,7 +72,17 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
                 'shared.slider': { populate: { files: true } },
               },
             },
+            style: {
+              populate: {
+                background_image: true
+              }
+            }
           },
+        },
+        style: {
+          populate: {
+            background_image: true
+          }
         },
         // request only minimal info so we can hydrate later
         page_template: {
@@ -83,9 +93,14 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
               }
             }
           }
-        },
-      },
+        }
+      }
     });
+
+    if (!entity) {
+      strapi.log.warn(`Page not found - ID: ${id}, Status: ${status}`);
+      return ctx.notFound('Page not found or not available in the requested status');
+    }
 
     //strapi.log.info(`Fetched page entity for preview: ${JSON.stringify(entity)}`);
     // Hydrate page_template if present

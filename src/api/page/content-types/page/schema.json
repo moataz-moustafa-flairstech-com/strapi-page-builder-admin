@@ -34,6 +34,12 @@
       "type": "component",
       "repeatable": true,
       "component": "shared.page-section"
+    },
+    "style": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.page-styling-options",
+      "required": false
     }
   }
 }

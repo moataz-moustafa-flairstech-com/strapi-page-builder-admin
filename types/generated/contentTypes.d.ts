@@ -609,6 +609,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     slug: Schema.Attribute.UID<'name'> &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
+    style: Schema.Attribute.Component<'shared.page-styling-options', false>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -63,6 +63,70 @@ export interface SharedPageSection extends Struct.ComponentSchema {
     name: Schema.Attribute.String & Schema.Attribute.Required;
     place_holder_ui_indentifier: Schema.Attribute.String &
       Schema.Attribute.Required;
+    style: Schema.Attribute.Component<
+      'shared.page-section-styling-options',
+      false
+    >;
+  };
+}
+
+export interface SharedPageSectionStylingOptions
+  extends Struct.ComponentSchema {
+  collectionName: 'components_shared_page_section_styling_options';
+  info: {
+    description: 'Advanced styling options for page sections including dimensions and scrolling';
+    displayName: 'Page Section Styling Options';
+    icon: 'paint-brush';
+  };
+  attributes: {
+    background_color: Schema.Attribute.String &
+      Schema.Attribute.CustomField<'plugin::color-picker.color'> &
+      Schema.Attribute.SetPluginOptions<{
+        'color-picker': {
+          format: 'hex';
+        };
+      }>;
+    background_image: Schema.Attribute.Media<'images'>;
+    maximum_width: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    maximum_width_unit: Schema.Attribute.Enumeration<['pixels', 'percent']> &
+      Schema.Attribute.DefaultTo<'pixels'>;
+    minimum_width: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    minimum_width_unit: Schema.Attribute.Enumeration<['pixels', 'percent']> &
+      Schema.Attribute.DefaultTo<'pixels'>;
+    scrollable: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+  };
+}
+
+export interface SharedPageStylingOptions extends Struct.ComponentSchema {
+  collectionName: 'components_shared_page_styling_options';
+  info: {
+    description: 'Styling options for pages including background color and image';
+    displayName: 'Page Styling Options';
+    icon: 'palette';
+  };
+  attributes: {
+    background_color: Schema.Attribute.String &
+      Schema.Attribute.CustomField<'plugin::color-picker.color'> &
+      Schema.Attribute.SetPluginOptions<{
+        'color-picker': {
+          format: 'hex';
+        };
+      }>;
+    background_image: Schema.Attribute.Media<'images'>;
   };
 }
 
@@ -139,6 +203,8 @@ declare module '@strapi/strapi' {
       'shared.layout-repeater': SharedLayoutRepeater;
       'shared.media': SharedMedia;
       'shared.page-section': SharedPageSection;
+      'shared.page-section-styling-options': SharedPageSectionStylingOptions;
+      'shared.page-styling-options': SharedPageStylingOptions;
       'shared.place-holder': SharedPlaceHolder;
       'shared.quote': SharedQuote;
       'shared.rich-text': SharedRichText;
