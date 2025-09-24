@@ -87,6 +87,16 @@ export interface SharedPageSectionStylingOptions
         };
       }>;
     background_image: Schema.Attribute.Media<'images'>;
+    maximum_height: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    maximum_height_unit: Schema.Attribute.Enumeration<['pixels', 'percent']> &
+      Schema.Attribute.DefaultTo<'pixels'>;
     maximum_width: Schema.Attribute.Integer &
       Schema.Attribute.SetMinMax<
         {
@@ -96,6 +106,16 @@ export interface SharedPageSectionStylingOptions
       > &
       Schema.Attribute.DefaultTo<0>;
     maximum_width_unit: Schema.Attribute.Enumeration<['pixels', 'percent']> &
+      Schema.Attribute.DefaultTo<'pixels'>;
+    minimum_height: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    minimum_height_unit: Schema.Attribute.Enumeration<['pixels', 'percent']> &
       Schema.Attribute.DefaultTo<'pixels'>;
     minimum_width: Schema.Attribute.Integer &
       Schema.Attribute.SetMinMax<

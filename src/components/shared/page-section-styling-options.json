@@ -42,6 +42,26 @@
       "enum": ["pixels", "percent"],
       "default": "pixels"
     },
+    "minimum_height": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "minimum_height_unit": {
+      "type": "enumeration",
+      "enum": ["pixels", "percent"],
+      "default": "pixels"
+    },
+    "maximum_height": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "maximum_height_unit": {
+      "type": "enumeration",
+      "enum": ["pixels", "percent"],
+      "default": "pixels"
+    },
     "scrollable": {
       "type": "boolean",
       "default": false
