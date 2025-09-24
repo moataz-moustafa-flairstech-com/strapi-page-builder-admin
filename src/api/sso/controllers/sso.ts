@@ -29,9 +29,9 @@ export default {
         database: DB_NAME,
       });
 
-      // look up otp - select all columns and adapt to different schemas
+      // look up otp - ensure it's not marked expired and that now is within 5 minutes of expire_at
       const [rows] = await conn.execute(
-        'SELECT * FROM otp_expiry WHERE is_expired = 0 AND otp = ? LIMIT 1',
+        'SELECT * FROM otp_expiry WHERE is_expired = 0 AND otp = ? AND NOW() <= expire_at LIMIT 1',
         [otp]
       );
 
@@ -61,6 +61,18 @@ export default {
 
       const user_name = otpRow[userKey];
       const tenant_id = tenantKey ? otpRow[tenantKey] : null;
+
+      // mark OTP as used (set is_expired = 1)
+      try {
+        if (Object.prototype.hasOwnProperty.call(otpRow, 'id')) {
+          await conn.execute('UPDATE otp_expiry SET is_expired = 1 WHERE id = ?', [otpRow.id]);
+        } else {
+          // fallback: update matching otp row
+          await conn.execute('UPDATE otp_expiry SET is_expired = 1 WHERE otp = ? LIMIT 1', [otp]);
+        }
+      } catch (e) {
+        console.log('SSO: failed to mark otp as expired', e.message || e);
+      }
 
       // fetch tenant details
       let tenant = null;
