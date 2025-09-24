@@ -29,9 +29,9 @@ export default {
         database: DB_NAME,
       });
 
-      // look up otp
+      // look up otp - select all columns and adapt to different schemas
       const [rows] = await conn.execute(
-        'SELECT user_name, tenant_id FROM otp_expiry WHERE otp = ? LIMIT 1',
+        'SELECT * FROM otp_expiry WHERE is_expired = 0 AND otp = ? LIMIT 1',
         [otp]
       );
 
@@ -42,33 +42,39 @@ export default {
         return ctx.redirect('/admin');
       }
 
-      const { user_name, tenant_id } = otpRow as any;
+      // detect username column
+      const usernameKeys = ['user_email'];
+      const tenantKeys = ['tenant_id'];
+
+      const userKey = usernameKeys.find((k) => Object.prototype.hasOwnProperty.call(otpRow, k));
+      const tenantKey = tenantKeys.find((k) => Object.prototype.hasOwnProperty.call(otpRow, k));
+
+      if (!userKey) {
+        console.log('SSO: otp_expiry row does not contain a recognized username column. Columns:', Object.keys(otpRow));
+        await conn.end();
+        return ctx.redirect('/admin');
+      }
+      if (!tenantKey) {
+        console.log('SSO: otp_expiry row does not contain a recognized tenant id column. Columns:', Object.keys(otpRow));
+        // continue without tenant
+      }
+
+      const user_name = otpRow[userKey];
+      const tenant_id = tenantKey ? otpRow[tenantKey] : null;
 
       // fetch tenant details
-      const [tenantsRows] = await conn.execute(
-        `SELECT
-          id,
-          tenant_name,
-          domain,
-          strapi_db_name,
-          strapi_db_username,
-          strapi_db_password,
-          strapi_db_server,
-          strapi_db_port,
-          strapi_db_SSL,
-          strapi_assets_api_url,
-          app_db_name,
-          app_db_username,
-          app_db_password,
-          app_db_server,
-          app_db_port,
-          app_db_SSL
-        FROM tenants
-        WHERE id = ? LIMIT 1`,
-        [tenant_id]
-      );
-
-      const tenant = Array.isArray(tenantsRows) && tenantsRows.length ? tenantsRows[0] : null;
+      let tenant = null;
+      if (tenant_id) {
+        try {
+          const [tenantsRows] = await conn.execute(
+            `SELECT * FROM tenants WHERE id = ? LIMIT 1`,
+            [tenant_id]
+          );
+          tenant = Array.isArray(tenantsRows) && tenantsRows.length ? tenantsRows[0] : null;
+        } catch (e) {
+          console.log('SSO: error fetching tenant row', e.message || e);
+        }
+      }
 
       // save tenant to session
       try {
@@ -87,7 +93,7 @@ export default {
       // create a simple JWT token and set as cookie to attempt bypass
       try {
         const secret = process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'change-me';
-        const token = jwt.sign({ username: user_name }, secret, { expiresIn: '1d' });
+  const token = jwt.sign({ username: user_name }, secret, { expiresIn: '1d' });
 
         // set cookie (httpOnly)
         ctx.cookies.set('strapi_jwt', token, {
