@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_shared_external_contents",
+  "info": {
+    "displayName": "External Content",
+    "icon": "external-link-alt",
+    "description": "External website content with live refresh capabilities"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "url": {
+      "type": "string",
+      "required": true
+    },
+    "live": {
+      "type": "boolean",
+      "default": false
+    },
+    "refresh_rate": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}

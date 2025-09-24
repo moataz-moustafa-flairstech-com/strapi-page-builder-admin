@@ -1,0 +1,8 @@
+{
+  "name": "placeholder-picker",
+  "version": "0.0.1",
+  "strapi": {
+    "name": "placeholder-picker",
+    "kind": "plugin"
+  }
+}

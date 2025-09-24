@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_shared_layout_repeaters",
+  "info": {
+    "displayName": "Layout Repeater",
+    "icon": "th-large",
+    "description": "Repeater that groups placeholders into layout rows/columns"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "blocks_repeat": {
+      "type": "enumeration",
+      "enum": ["horizontal", "vertical"],
+      "default": "vertical"
+    },
+    "blocks_resizable": {
+      "type": "boolean",
+      "default": false
+    },
+    "blocks": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.place-holder"
+    }
+  }
+}

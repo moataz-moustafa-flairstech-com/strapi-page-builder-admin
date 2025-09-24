@@ -1,0 +1,70 @@
+{
+  "collectionName": "components_shared_page_section_styling_options",
+  "info": {
+    "displayName": "Page Section Styling Options",
+    "icon": "paint-brush",
+    "description": "Advanced styling options for page sections including dimensions and scrolling"
+  },
+  "options": {},
+  "attributes": {
+    "background_color": {
+      "type": "string",
+      "customField": "plugin::color-picker.color",
+      "pluginOptions": {
+        "color-picker": {
+          "format": "hex"
+        }
+      }
+    },
+    "background_image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "minimum_width": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "minimum_width_unit": {
+      "type": "enumeration",
+      "enum": ["pixels", "percent"],
+      "default": "pixels"
+    },
+    "maximum_width": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "maximum_width_unit": {
+      "type": "enumeration",
+      "enum": ["pixels", "percent"],
+      "default": "pixels"
+    },
+    "minimum_height": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "minimum_height_unit": {
+      "type": "enumeration",
+      "enum": ["pixels", "percent"],
+      "default": "pixels"
+    },
+    "maximum_height": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "maximum_height_unit": {
+      "type": "enumeration",
+      "enum": ["pixels", "percent"],
+      "default": "pixels"
+    },
+    "scrollable": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

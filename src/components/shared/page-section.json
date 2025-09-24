@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_shared_page_sections",
+  "info": {
+    "displayName": "Page Section",
+    "icon": "columns",
+    "description": "A page section that maps to a placeholder UI identifier and contains blocks"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "place_holder_ui_indentifier": {
+      "type": "string",
+      "required": true
+    },
+    "blocks": {
+      "type": "dynamiczone",
+      "components": [
+        "shared.external-content",
+        "shared.media",
+        "shared.quote",
+        "shared.rich-text",
+        "shared.slider"
+      ]
+    },
+    "style": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.page-section-styling-options",
+      "required": false
+    }
+  }
+}
