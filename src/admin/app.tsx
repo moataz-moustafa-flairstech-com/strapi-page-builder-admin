@@ -17,36 +17,42 @@ const PageBuilderPage = () => (
   </div>
 );
 
-/** Action UI used to open the external layout manager (can be a modal instead) */
-const ActionButton = ({ documentId }: { documentId?: string }) => {
-  if (!documentId) return null;
-  return (
-    <Button
-      size="S"
-      onClick={() =>
-        window.open(
-          `/page-template-layout-manager.html?documentId=${encodeURIComponent(documentId)}`,
-          "_blank"
-        )
-      }
-      startIcon={<PencilIcon />}
-      variant="secondary"
-    >
-      Edit layout
-    </Button>
-  );
-};
+
+function buildManagerUrl(documentId?: string) {
+    ///plugins/page-builder
+    const base = `/admin/plugins/page-builder${documentId ? '?documentId=' + encodeURIComponent(documentId) : ''}`;
+  return base;
+}
+
+
 
 export default {
   register(app: any) {
     // sidebar menu link (keep in register)
+    // app.addMenuLink({
+    //   to: "/plugins/page-builder",
+    //   icon: PencilIcon,
+    //   intlLabel: { id: "page-builder.label", defaultMessage: "Page Builder" },
+    //   Component: PageBuilderPage,
+    //   permissions: [],
+    // });
+
+    // Register a hidden route only (no menu link)
     app.addMenuLink({
       to: "/plugins/page-builder",
       icon: PencilIcon,
-      intlLabel: { id: "page-builder.label", defaultMessage: "Page Builder" },
-      Component: PageBuilderPage,
+      intlLabel: {
+        id: "page-builder.label",
+        defaultMessage: "Page Builder",
+      },
+      // Lazy load the page
+      Component: async () => {
+        const component = await import("./pages/PageBuilder");
+        return component.default;
+      },
       permissions: [],
     });
+
   },
 
   // IMPORTANT: Content-Manager apis should be called from bootstrap()
@@ -78,9 +84,10 @@ export default {
           onClick: () => {
             // context may expose document/documentId/documents depending on where it's called
             const id =
-              ctx?.document?.id || ctx?.documentId || (ctx?.documents && ctx.documents[0]?.id);
+              ctx?.documentId || (ctx?.documents && ctx.documents[0]?.id);
             if (!id) return;
-            window.open(`/page-template-layout-manager.html?documentId=${id}`, "_blank");
+            // prefer token from ctx.request.cookies when available 
+            window.open(buildManagerUrl(String(id)), "_self");
           },
           variant: "secondary",
         };
@@ -100,9 +107,9 @@ export default {
           icon: <PencilIcon />,
           position: "header", // header of the Edit view
           onClick: () => {
-            const id = ctx?.document?.id || ctx?.documentId;
+            const id = ctx?.documentId;
             if (!id) return;
-            window.open(`/page-template-layout-manager.html?documentId=${id}`, "_blank");
+            window.open(buildManagerUrl(String(id)), "_self");
           },
           variant: "secondary",
         };

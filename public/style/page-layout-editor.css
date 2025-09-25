@@ -1,0 +1,132 @@
+/* Basic page layout to replace Tailwind utilities */
+:root{
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --muted: #64748b;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --green: #10b981;
+}
+html,body{height:100%;}
+body {
+    /* Use a system font stack to avoid external font dependencies */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    background-color: var(--bg);
+    color: #1e293b;
+    margin: 0;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--card);
+    border-radius: 18px;
+    box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+    overflow: hidden;
+    padding: 32px;
+}
+
+.app-title{
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+.app-desc{
+    text-align: center;
+    color: #6b7280;
+    margin: 0 0 20px 0;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+}
+
+/* Panels */
+.panel {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.components-panel h2, .builder-panel h2{margin:0 0 12px 0}
+
+/* Simple button styles */
+.btn{display:inline-block;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+.btn-blue{background:#2563eb;color:white}
+.btn-purple{background:#7c3aed;color:white}
+.btn-green{background:#16a34a;color:white}
+.btn-block{display:block;width:100%}
+
+/* Inputs/textarea */
+input[type=text], textarea{font-family:inherit}
+.component-id-input{border:1px solid #d1d5db;border-radius:6px;padding:6px 8px;font-size:13px;width:100%;box-sizing:border-box}
+.compact-row{display:flex;gap:8px}
+.compact-row .component-id-input{flex:1}
+
+/* Components list */
+#components-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+
+/* Keep previously defined styles for builder elements (re-used) */
+.layout-container {
+    border: 2px solid #3b82f6;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0;
+    background-color: #eff6ff;
+    min-height: 100px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.layout-container.horizontal {display:flex;flex-direction:row;gap:8px}
+.layout-container.vertical {display:flex;flex-direction:column;gap:8px}
+.layout-container.leaf {border-color:#10b981;background:#ecfdf5;min-height:80px;display:flex;align-items:center;justify-content:center}
+.layout-container.non-leaf {border-color:#8b5cf6;background:#faf5ff}
+.layout-container.drag-over{border-color:#f59e0b;background:#fef3c7}
+
+.container-header{position:absolute;top:-12px;left:8px;background:#3b82f6;color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;font-weight:600;display:flex;align-items:center;gap:6px}
+.container-header.leaf{background:#10b981}
+.container-header.non-leaf{background:#8b5cf6}
+.container-header input{background:transparent;border:none;color:white;font-size:12px;width:120px;outline:none}
+
+.control-btn{background:rgba(255,255,255,0.9);color:#374151;border:1px solid #d1d5db;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.control-btn:hover{background:#fff}
+
+.component-item{border:2px solid #8b5cf6;border-radius:8px;padding:10px;background:#faf5ff;cursor:grab;display:flex;align-items:center;justify-content:space-between}
+.component-item.dragging{opacity:0.5}
+.component-name{font-weight:600;color:#6b21a8}
+
+.drop-zone{border:2px dashed #94a3b8;border-radius:6px;padding:14px;text-align:center;color:var(--muted);background:#f1f5f9;min-height:60px;display:flex;align-items:center;justify-content:center}
+.drop-zone.active{border-color:var(--blue);background:#dbeafe;color:#1e40af}
+
+.root-layout{min-height:360px;border:3px dashed #6366f1;border-radius:14px;padding:18px;background:var(--bg)}
+
+.placed-component{border:2px solid #059669;border-radius:8px;padding:8px 12px;background:#ecfdf5;color:#047857;font-weight:600;cursor:grab;display:inline-flex;align-items:center}
+.placed-component.dragging{opacity:0.5}
+
+.json-output{background:#0f172a;color:#e2e8f0;font-family:monospace;font-size:13px;padding:12px;border-radius:8px;max-height:280px;overflow:auto;white-space:pre-wrap}
+
+.layout-type-horizontal::before{content:"↔";margin-right:6px}
+.layout-type-vertical::before{content:"↕";margin-right:6px}
+.layout-type-leaf::before{content:"📦";margin-right:6px}
+.layout-type-non-leaf::before{content:"📁";margin-right:6px}
+
+.hidden{display:none}
+
+/* Responsive */
+@media (max-width: 960px){
+    .main-grid{grid-template-columns:1fr;}
+    .app-container{padding:20px}
+    .container-header input{width:80px}
+}
