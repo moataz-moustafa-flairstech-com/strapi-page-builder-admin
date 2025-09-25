@@ -40,6 +40,9 @@
       "repeatable": false,
       "component": "shared.page-styling-options",
       "required": false
+    },
+    "layout_structure": {
+      "type": "json"
     }
   }
 }
