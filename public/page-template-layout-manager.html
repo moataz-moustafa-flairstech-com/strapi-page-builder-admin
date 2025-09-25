@@ -104,11 +104,20 @@
                 </div>
             </div>
 
+                        <div class="param-item">
+                            <span class="param-label">Strapi Token:</span>
+                            <input id="tokenInput" type="password" placeholder="paste token or use ?token=..." style="font-family:monospace; width:100%" />
+                        </div>
             <div class="layout-section">
                 <h3>Layout Management</h3>
                 <button class="btn" onclick="loadTemplate()">Load Template Data</button>
-                <button class="btn" onclick="saveLayout()">Save Layout</button>
-                
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn" onclick="loadTemplate()">Load Template Data</button>
+                            <button class="btn" onclick="saveLayout()">Save Layout</button>
+                            <button class="btn" onclick="fetchTemplates()">Load Templates</button>
+                        </div>
+                        <div id="templatesList" style="margin-top:12px;"></div>
+                        <pre id="loadedJson" style="margin-top:16px; padding:12px; background:#f4f6ff; border-radius:4px; max-height:300px; overflow:auto;">No data loaded</pre>
                 <div class="placeholder">
                     <p><strong>Layout Manager Interface</strong></p>
                     <p>This is where you can implement:</p>
@@ -141,16 +150,106 @@
         }
 
         // Load template data (placeholder function)
-        function loadTemplate() {
-            const params = getUrlParams();
-            if (params.documentId) {
-                alert(`Loading template data for document: ${params.documentId}`);
-                // Here you would make an API call to fetch the template data
-                // fetch(`/api/page-templates/${params.documentId}`)...
-            } else {
-                alert('No document ID provided in URL parameters');
+            // Helper to get token from URL param or input
+            function getTokenFromPage() {
+                const params = new URLSearchParams(window.location.search);
+                const p = params.get('token') || params.get('auth') || params.get('authorization');
+                if (p) return p;
+                const el = document.getElementById('tokenInput');
+                try {
+                    return el && el.value ? el.value.trim() : '';
+                } catch (e) {
+                    return '';
+                }
             }
-        }
+
+            // Build headers with Authorization if token present
+            function buildAuthHeaders() {
+                const token = getTokenFromPage();
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                return headers;
+            }
+
+            // Load template data via Strapi REST API using optional token
+            async function loadTemplate() {
+                const params = getUrlParams();
+                if (!params.documentId) {
+                    alert('No document ID provided in URL parameters');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/api/page-templates/${encodeURIComponent(params.documentId)}`, {
+                        headers: buildAuthHeaders(),
+                    });
+                    if (!res.ok) {
+                        throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
+                    }
+                    const payload = await res.json();
+
+                    // Strapi returns the entity under `data` for single entry
+                    const data = payload && (payload.data || payload);
+                    const attributes = data && data.data ? data.data.attributes : data.attributes || data;
+
+                    const layoutStructure = attributes && attributes.layout_structure ? attributes.layout_structure : null;
+
+                    document.getElementById('loadedJson').textContent = JSON.stringify(layoutStructure, null, 2) || 'No layout_structure set';
+                    alert(`Loaded template ${params.documentId}`);
+                } catch (err) {
+                    console.error(err);
+                    alert('Error loading template data: ' + (err.message || err));
+                }
+            }
+
+            // Fetch list of page-templates
+            async function fetchTemplates() {
+                const listEl = document.getElementById('templatesList');
+                if (!listEl) return;
+                listEl.innerHTML = 'Loading...';
+                try {
+                    const res = await fetch('/api/page-templates?pagination[pageSize]=100', { headers: buildAuthHeaders() });
+                    if (!res.ok) {
+                        throw new Error(`Failed to fetch templates: ${res.status} ${res.statusText}`);
+                    }
+                    const payload = await res.json();
+                    const items = (payload && payload.data) || payload;
+                    if (!items || items.length === 0) {
+                        listEl.innerHTML = '<em>No templates found</em>';
+                        return;
+                    }
+
+                    const ul = document.createElement('ul');
+                    ul.style.listStyle = 'none';
+                    ul.style.padding = '0';
+                    for (const item of items) {
+                        // item may be { id, attributes } or full entry
+                        const id = item.id || (item.data && item.data.id);
+                        const attrs = item.attributes || (item.data && item.data.attributes) || {};
+                        const li = document.createElement('li');
+                        li.style.padding = '6px 0';
+                        const a = document.createElement('a');
+                        a.textContent = attrs.name || attrs.displayName || `Template ${id}`;
+                        a.href = `/page-template-layout-manager.html?documentId=${encodeURIComponent(id)}${getTokenFromPage() ? '&token=' + encodeURIComponent(getTokenFromPage()) : ''}`;
+                        a.target = '_blank';
+                        a.style.color = '#4945ff';
+                        a.style.textDecoration = 'none';
+                        a.style.fontWeight = '600';
+                        const meta = document.createElement('div');
+                        meta.style.fontSize = '12px';
+                        meta.style.color = '#666687';
+                        meta.textContent = `ID: ${id}`;
+                        li.appendChild(a);
+                        li.appendChild(meta);
+                        ul.appendChild(li);
+                    }
+                    listEl.innerHTML = '';
+                    listEl.appendChild(ul);
+                } catch (err) {
+                    console.error(err);
+                    listEl.innerHTML = `<span style="color:crimson">Error: ${err.message || err}</span>`;
+                }
+            }
 
         // Save layout (placeholder function)
         function saveLayout() {
