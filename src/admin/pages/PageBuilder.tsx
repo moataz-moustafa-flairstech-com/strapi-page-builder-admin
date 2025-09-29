@@ -1,8 +1,55 @@
 import React, { useEffect } from "react";
 
+
+function ParseQueryString()
+{
+  const urlParams = new URLSearchParams(window.location.search);
+  let current_document_id = "";
+  let current_model_type = "";
+  let current_document_status = "";
+  current_document_id = urlParams.get('documentId') || '';
+  const model = urlParams.get('model') ;
+
+  if(model === "page" || model === "api::page.page")
+  {
+    current_model_type = "page";
+  } 
+  else if(model === "page-template" || model === "api::page-template.page-template")
+  {
+    current_model_type = "page-template";
+  }
+
+  current_document_status = urlParams.get('status') || '';
+  console.log("ParseQueryString - document_id:", current_document_id, " model:", current_model_type, " status:", current_document_status);
+
+  // expose request-scoped globals for embedded scripts to consume
+  try {
+    (window as any).__pageBuilderParams = {
+      documentId: current_document_id,
+      model: current_model_type,
+      status: current_document_status,
+    };
+  } catch (e) {}
+  return { documentId: current_document_id, model: current_model_type, status: current_document_status };
+}
+
+function RenderComponentsPanel()
+{
+  const parameters = ParseQueryString();
+  if( parameters.model !== 'page') return null;
+
+  return (
+    <div className="panel components-panel">
+      <h2>Page Sections</h2>
+      <div id="components-list">
+          <div className="drop-zone" id="components-drop-zone">Drag components back here or add new ones above</div>
+      </div>
+    </div>
+  );
+}
+
 const LayoutEditor = () => {
   useEffect(() => {
-
     // Load your stylesheet
     const css = document.createElement("link");
     css.rel = "stylesheet";
@@ -61,25 +108,12 @@ const LayoutEditor = () => {
         <div className="main-grid">
 
             <div>
-                <div className="panel components-panel">
-                    <h2>Components</h2>
-                    <div className="mb-6">
-                        <div className="compact-row">
-                            <input type="text" id="new-component-id" placeholder="Component ID" className="component-id-input"/>
-                            <button id="add-component-btn" className="btn btn-purple">Add</button>
-                        </div>
-                    </div>
-
-                    <div id="components-list">
-                        <div className="drop-zone" id="components-drop-zone">Drag components back here or add new ones above</div>
-                    </div>
-                </div>
+                {RenderComponentsPanel()}
 
                 <div style={{ height: "16px" }}></div>
 
                 <div className="panel">
-                    <h3>Export</h3>
-                    <button id="export-btn" className="btn btn-green btn-block">Export JSON Structure</button>
+                    <button id="export-btn" className="btn btn-green btn-block">Save</button>
                     <div id="json-output" className="json-output hidden" style={{ marginTop: "12px" }}></div>
                 </div>
 

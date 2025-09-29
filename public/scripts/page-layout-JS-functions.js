@@ -1,3 +1,165 @@
+class PageTemplateApiClient
+{
+    constructor(_documentId) {
+        this.documentId = _documentId;
+    }
+
+    GetData(callback) {
+        const apiUrl = `/api/page-templates/${encodeURIComponent(this.documentId)}?populate=*`;
+
+        fetch(apiUrl, {  })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch page template: ' + res.status);
+                return res.json();
+            })
+            .then(body => {
+                if(callback && typeof(callback) == 'function')
+                {
+                    callback(body);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });        
+    }
+
+    SaveData(structure, callback)
+    {
+            const apiUrl = `/api/page-templates/${encodeURIComponent(this.documentId)}`;
+            const payload = { data: { layout_structure: structure } };
+
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    "Content-Type": "application/json", // <— must include this
+                },
+                body: JSON.stringify(payload)
+            }).then(res => {
+                if (!res.ok) throw new Error('Save failed: ' + res.status);
+                return res.json();
+            }).then(() => {
+                if(callback && typeof(callback) == 'function')
+                {
+                    callback();
+                }                
+            }).catch(err => {
+                console.error(err);
+                const status = document.getElementById('save-status');
+                if (status) {
+                    status.textContent = 'Failed to save layout: ' + err.message;
+                    status.style.color = 'red';
+                }
+            });
+
+    }
+}
+
+
+class PageApiClient
+{
+    constructor(_documentId, _documentStatus) {
+        this.documentId = _documentId;
+        this.documentStatus = _documentStatus;
+    }
+
+    GetData(callback) 
+    {
+        //request data from API
+        const apiUrl = `/api/pages/${encodeURIComponent(this.documentId)}/preview?status=${encodeURIComponent(this.documentStatus)}`;
+
+        fetch(apiUrl, {  })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to fetch page data: ' + res.status);
+                return res.json();
+            })
+            .then(body => {
+                if(callback && typeof(callback) == 'function')
+                {
+
+                    var data = body.data;
+                    var transformredData = {
+                        data: 
+                        {
+                            layout_structure:
+                            {
+                                "components": {},
+                                "layout": {},
+                                "relations": {}
+                            }
+                        }
+                    };
+
+                    // Map sections to template layout structure
+                    var pageLayoutRelations = data?.layout_structure?.relations || null;
+                    var templateLayout = data.page_template?.layout_structure?.layout || null;
+                    transformredData.data.layout_structure.layout = templateLayout || null;
+                    
+                    var sections = data.sections || [];
+                    for(var index=0 ; index < sections.length ; index++)
+                    {
+                        var key = sections[index].name;
+                        var containerId = null;
+
+                        //validate section exists in template layout and is a leaf
+                        if(templateLayout && 
+                            pageLayoutRelations && 
+                            pageLayoutRelations[ key ] && 
+                            templateLayout[ pageLayoutRelations[ key ] ] &&
+                            templateLayout[ pageLayoutRelations[ key ] ]["type"] === "leaf"
+                        )
+                        {
+                            containerId = pageLayoutRelations[ key ];
+                            transformredData.data.layout_structure.relations[ key ] = containerId;
+                        }
+
+                        transformredData.data.layout_structure.components[ sections[index].name ] = 
+                        {
+                            id: sections[index].name,
+                            containerId: containerId
+                        };
+                    }
+
+                    callback(transformredData);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });          
+
+
+    }
+
+    SaveData(structure, callback)
+    {
+        const apiUrl = `/api/pages/${encodeURIComponent(this.documentId)}/updateLayoutStructure?status=${encodeURIComponent(this.documentStatus)}`;
+        const payload = { data: { layout_structure: structure } };
+
+        fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json", // <— must include this
+            },
+            body: JSON.stringify(payload)
+        }).then(res => {
+            if (!res.ok) throw new Error('Save failed: ' + res.status);
+            return res.json();
+        }).then(() => {
+            if(callback && typeof(callback) == 'function')
+            {
+                callback();
+            }                
+        }).catch(err => {
+            console.error(err);
+            const status = document.getElementById('save-status');
+            if (status) {
+                status.textContent = 'Failed to save layout: ' + err.message;
+                status.style.color = 'red';
+            }
+        });
+    }
+
+}
+
 class LayoutBuilder {
     constructor() {
         this.components = new Map();
@@ -5,15 +167,45 @@ class LayoutBuilder {
         this.draggedElement = null;
         this.draggedType = null; // 'component' or 'placed-component'
         this.containerCounter = 1;
-        
+        this.apiClient = null;
+        this.documentId = null;
+        this.documentStatus = null;
+        this.modelType = null;
+
         this.initializeEventListeners();
+    }
+
+
+    setDocumentParameters(_documentId,_modelType,_documentStatus)
+    {
+        this.documentId = _documentId;
+        this.documentStatus = _documentStatus;
+
+        if( _modelType === 'page-template' || _modelType === 'api::page-template.page-template')
+        {
+            this.modelType = 'page-template';
+        } 
+        else if( _modelType === 'page' || _modelType === 'api::page.page')
+        {
+            this.modelType = 'page';
+        }
+
+
+        if( this.modelType === 'page-template')
+        {
+            this.apiClient = new PageTemplateApiClient(this.documentId);
+        }
+        else if(this.modelType === 'page')
+        {
+            this.apiClient = new PageApiClient(this.documentId, this.documentStatus);
+        }
     }
 
     initializeEventListeners() {
         // Add component button
-        document.getElementById('add-component-btn').addEventListener('click', () => {
-            this.addComponent();
-        });
+        // document.getElementById('add-component-btn').addEventListener('click', () => {
+        //     this.addComponent();
+        // });
 
         // Add root div button
         document.getElementById('add-root-div-btn').addEventListener('click', () => {
@@ -31,24 +223,24 @@ class LayoutBuilder {
         });
 
         // Enter key for adding components
-        document.getElementById('new-component-id').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.addComponent();
-            }
-        });
+        // document.getElementById('new-component-id').addEventListener('keypress', (e) => {
+        //     if (e.key === 'Enter') {
+        //         this.addComponent();
+        //     }
+        // });
 
         // Setup components drop zone
         this.setupComponentsDropZone();
     }
 
-    addComponent() {
-        const input = document.getElementById('new-component-id');
-        const componentId = input.value.trim();
+    addComponent(componentId) {
+        // const input = document.getElementById('new-component-id');
+        // const componentId = input.value.trim();
         
-        if (!componentId) {
-            alert('Please enter a component ID');
-            return;
-        }
+        // if (!componentId) {
+        //     alert('Please enter a component ID');
+        //     return;
+        // }
 
         if (this.components.has(componentId)) {
             alert('Component ID already exists');
@@ -383,6 +575,9 @@ class LayoutBuilder {
     }
 
     setupComponentsDropZone() {
+
+        if( this.modelType !== 'page-template') return;
+
         const dropZone = document.getElementById('components-drop-zone');
         
         dropZone.addEventListener('dragover', (e) => {
@@ -761,20 +956,20 @@ class LayoutBuilder {
 }
 
 
-function getCookie(name) {
-  const nameEQ = name + "=";
-  const ca = document.cookie.split(';'); // Split into individual cookies
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') { // Remove leading whitespace
-      c = c.substring(1, c.length);
-    }
-    if (c.indexOf(nameEQ) === 0) { // Check if this is the desired cookie
-      return decodeURIComponent(c.substring(nameEQ.length, c.length)); // Return decoded value
-    }
-  }
-  return null; // Return null if cookie not found
-}
+// function getCookie(name) {
+//   const nameEQ = name + "=";
+//   const ca = document.cookie.split(';'); // Split into individual cookies
+//   for (let i = 0; i < ca.length; i++) {
+//     let c = ca[i];
+//     while (c.charAt(0) === ' ') { // Remove leading whitespace
+//       c = c.substring(1, c.length);
+//     }
+//     if (c.indexOf(nameEQ) === 0) { // Check if this is the desired cookie
+//       return decodeURIComponent(c.substring(nameEQ.length, c.length)); // Return decoded value
+//     }
+//   }
+//   return null; // Return null if cookie not found
+// }
 
 // Initialize the application. Expose init on window and support immediate init
 function initLayoutBuilder() {
@@ -787,55 +982,44 @@ function initLayoutBuilder() {
     // On load: if documentId provided, fetch page-template and load layout_structure
     const params = new URLSearchParams(window.location.search);
     const documentId = params.get('documentId');
-    const tokenFromQuery = getCookie('jwtToken');
+    const modelParam = params.get('model');
+    const status = params.get('status');
+    //debugger;
+    builder.setDocumentParameters(documentId, modelParam, status);
 
-    function buildAuthHeaders(token) {
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = 'Bearer ' + token;
-        return headers;
-    }
 
-    if (documentId) {
-        const apiUrl = `/api/page-templates/${encodeURIComponent(documentId)}?populate=*`;
-        const token = tokenFromQuery;
-
-        fetch(apiUrl, {  })
-            .then(res => {
-                if (!res.ok) throw new Error('Failed to fetch page template: ' + res.status);
-                return res.json();
-            })
-            .then(body => {
-                const data = body && body.data ? body.data : body;
-                // Set page-builder title from template name if available
-                try {
-                    const titleEl = document.getElementById('layout-builder-title');
-                    if (titleEl && data.name) {
-                        titleEl.innerHTML = data.name;
-                    }
-                } catch (e) {}
-
-                if (data && data.layout_structure) {
-                    try {
-                        builder.loadFromStructure(data.layout_structure);
-                    } catch (err) {
-                        console.error('Failed to load layout_structure:', err);
-                        alert('Failed to load layout_structure: ' + err.message);
-                    }
+    if (builder.documentId && builder.apiClient) {
+        
+        let callback = function(body)
+        {
+            const data = body && body.data ? body.data : body;
+            // Set page-builder title from template name if available
+            try {
+                const titleEl = document.getElementById('layout-builder-title');
+                if (titleEl && data.name) {
+                    titleEl.innerHTML = data.name;
                 }
-            })
-            .catch(err => {
-                console.error(err);
-            });
+            } catch (e) {}
+
+            if (data && data.layout_structure) {
+                try {
+                    builder.loadFromStructure(data.layout_structure);
+                } catch (err) {
+                    console.error('Failed to load layout_structure:', err);
+                    alert('Failed to load layout_structure: ' + err.message);
+                }
+            }
+
+        };
+
+        builder.apiClient.GetData(callback);
+
     }
 
     // Override exportStructure to also save to API when documentId present
     const originalExport = builder.exportStructure.bind(builder);
     builder.exportStructure = function() {
         originalExport();
-
-        const params = new URLSearchParams(window.location.search);
-        const documentId = params.get('documentId');
-        const token =  getCookie('jwtToken');
 
         // Build the structure again to get latest
         const structure = (function(b) {
@@ -859,34 +1043,19 @@ function initLayoutBuilder() {
             return s;
         })(builder);
 
-        if (documentId) {
-            const apiUrl = `/api/page-templates/${encodeURIComponent(documentId)}`;
-            const payload = { data: { layout_structure: structure } };
-
-            fetch(apiUrl, {
-                method: 'PUT',
-                headers: {
-                    "Content-Type": "application/json", // <— must include this
-                },
-                body: JSON.stringify(payload)
-            }).then(res => {
-                if (!res.ok) throw new Error('Save failed: ' + res.status);
-                return res.json();
-            }).then(() => {
+        if (builder.documentId && builder.apiClient) 
+        {
+            let callback = function()
+            {
                 const status = document.getElementById('save-status');
                 if (status) {
                     status.textContent = 'Layout saved to page-template.layout_structure ✓';
                     status.style.color = 'green';
                     setTimeout(() => { status.textContent = ''; }, 3000);
                 }
-            }).catch(err => {
-                console.error(err);
-                const status = document.getElementById('save-status');
-                if (status) {
-                    status.textContent = 'Failed to save layout: ' + err.message;
-                    status.style.color = 'red';
-                }
-            });
+            };
+
+            builder.apiClient.SaveData(structure, callback);
         }
     };
 

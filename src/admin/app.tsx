@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@strapi/design-system";
+import { json } from "stream/consumers";
 
 /**
  * Simple inline icon to avoid @strapi/icons TypeScript friction
@@ -18,9 +19,14 @@ const PageBuilderPage = () => (
 );
 
 
-function buildManagerUrl(documentId?: string) {
+function buildManagerUrl(documentId?: string, model?: string, status?: string) {
+    let queryParams = new URLSearchParams();
+    if (documentId) queryParams.append('documentId', documentId);
+    if (model) queryParams.append('model', model);
+    if (status) queryParams.append('status', status);
     ///plugins/page-builder
-    const base = `/admin/plugins/page-builder${documentId ? '?documentId=' + encodeURIComponent(documentId) : ''}`;
+    const base = `/admin/plugins/page-builder${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    console.log("buildManagerUrl:", base);
   return base;
 }
 
@@ -70,11 +76,15 @@ export default {
       // --- addDocumentAction adds actions for both ListView (table-row) and EditView (panel/header)
       // We add a table-row action that opens the layout editor for each document.
       const TableRowAction = (ctx: any) => {
+        console.log("[layout-manager] TableRowAction ctx:", ctx);
         // ctx is a ListViewContext when used in the list; inspect in console if unsure
         // guard to only run for page-template
-        if (ctx?.model !== "api::page-template.page-template" && ctx?.model !== "page-template") {
+
+        if (ctx?.model !== "api::page-template.page-template" && ctx?.model !== "page-template" 
+          && ctx?.model !== "api::page.page" && ctx?.model !== "page") {
           return null;
         }
+
 
         // Return the action description expected by Strapi
         return {
@@ -84,10 +94,21 @@ export default {
           onClick: () => {
             // context may expose document/documentId/documents depending on where it's called
             const id =
-              ctx?.documentId || (ctx?.documents && ctx.documents[0]?.id);
+              ctx?.documentId || (ctx?.documents && ctx.documents[0]?.documentId);
             if (!id) return;
-            // prefer token from ctx.request.cookies when available 
-            window.open(buildManagerUrl(String(id)), "_self");
+
+            let modelType = null;
+            if (ctx?.model === "api::page-template.page-template" || ctx?.model === "page-template") {
+              modelType = "page-template";
+            } else if (ctx?.model === "api::page.page" || ctx?.model === "page") {
+              modelType = "page";
+            } else{
+              return;
+            }
+
+
+            // prefer token from ctx.request.cookies when available
+            window.open(buildManagerUrl(String(id), modelType, ctx?.document?.status), "_self");
           },
           variant: "secondary",
         };
@@ -97,25 +118,30 @@ export default {
       apis.addDocumentAction([TableRowAction]);
 
       // Also add a header action for the EditView (the button next to Save/Publish)
-      const HeaderAction = (ctx: any) => {
-        if (ctx?.model !== "api::page-template.page-template" && ctx?.model !== "page-template") {
-          return null;
-        }
+      // const HeaderAction = (ctx: any) => {
+      //   let modelType = null;
+      //   if (ctx?.model !== "api::page-template.page-template" && ctx?.model !== "page-template") {
+      //     modelType = "page-template";
+      //   } else if (ctx?.model !== "api::page.page" && ctx?.model !== "page") {
+      //     modelType = "page";
+      //   } else{
+      //     return null;
+      //   }
 
-        return {
-          label: "Edit layout",
-          icon: <PencilIcon />,
-          position: "header", // header of the Edit view
-          onClick: () => {
-            const id = ctx?.documentId;
-            if (!id) return;
-            window.open(buildManagerUrl(String(id)), "_self");
-          },
-          variant: "secondary",
-        };
-      };
+      //   return {
+      //     label: "Edit layout",
+      //     icon: <PencilIcon />,
+      //     position: "header", // header of the Edit view
+      //     onClick: () => {
+      //       const id = ctx?.documentId;
+      //       if (!id) return;
+      //       window.open(buildManagerUrl(String(id), modelType, ctx?.status), "_self");
+      //     },
+      //     variant: "secondary",
+      //   };
+      // };
 
-      apis.addDocumentHeaderAction([HeaderAction]);
+      //apis.addDocumentHeaderAction([HeaderAction]);
 
       console.info("[layout-manager] Content Manager actions registered");
     } catch (err) {

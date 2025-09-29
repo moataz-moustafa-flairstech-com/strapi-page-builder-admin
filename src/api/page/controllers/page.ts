@@ -140,6 +140,39 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
       strapi.log.error('Error in page preview:', err);
       return ctx.internalServerError('Error fetching page for preview');
     }
+  },
+
+  // Update only the layout_structure for a specific document (draft or published)
+  async updateLayoutStructure(ctx) {
+    // Expecting route: PUT /api/pages/:id/updateLayoutStructure?status=<draft|published>
+    if (ctx.method !== 'PUT') return ctx.methodNotAllowed('Only PUT allowed');
+
+    const { id } = ctx.params || {};
+    const { status = 'draft' } = ctx.query || {};
+
+    if (!id) return ctx.badRequest('Missing document id');
+    if (status !== 'draft' && status !== 'published') return ctx.badRequest('Invalid status, expected "draft" or "published"');
+
+    const layout_structure = ctx.request?.body?.data?.layout_structure;
+    if (typeof layout_structure === 'undefined') {
+      return ctx.badRequest('Missing layout_structure in request body (expected { data: { layout_structure: ... } })');
+    }
+
+    try {
+      const updated = await strapi.documents('api::page.page').update({
+        documentId: id,
+        status: status as 'draft' | 'published',
+        data: { layout_structure },
+      });
+
+      if (!updated) return ctx.notFound('Page not found for the given document id and status');
+
+      // Return the transformed response for consistency with other controllers
+      return this.transformResponse(updated);
+    } catch (err) {
+      strapi.log.error('Error updating layout_structure:', err);
+      return ctx.internalServerError('Error updating layout_structure');
+    }
   }
 
 }));
