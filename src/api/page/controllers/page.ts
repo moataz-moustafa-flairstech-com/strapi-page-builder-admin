@@ -8,7 +8,16 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
   // Extend core controller with validation hook for create/update
   async create(ctx) {
     // No placeholder identifier validation required after removing placeholder components
-    const { sections = [], page_template } = ctx.request.body?.data || {};
+    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+
+    if (!tokenTenant) {
+      return ctx.badRequest('Missing tenant_id in token');
+    }
+
+    // ensure tenant_id is set from token and mandatory
+    ctx.request.body = ctx.request.body || {};
+    ctx.request.body.data = ctx.request.body.data || {};
+    ctx.request.body.data.tenant_id = tokenTenant;
 
     return await super.create(ctx);
   },
@@ -16,6 +25,24 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
   async update(ctx) {
     // No placeholder identifier validation required after removing placeholder components
     // keep page_template and sections available for other logic
+    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+    const { id } = ctx.params || {};
+
+    if (!id) return ctx.badRequest('Missing id');
+
+    // fetch existing entry to verify tenant
+    const existing = await strapi.entityService.findOne('api::page.page', id, { fields: ['tenant_id'] });
+    if (!existing) return ctx.notFound('Page not found');
+
+    const existingTenant = existing?.tenant_id;
+    if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+      return ctx.forbidden('You are not allowed to modify this entry');
+    }
+
+    // prevent tenant_id from changing
+    if (ctx.request?.body?.data) {
+      delete ctx.request.body.data.tenant_id;
+    }
 
     return await super.update(ctx);
   },
@@ -152,16 +179,41 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
         // populate
         const populate = qs.populate || '*';
 
-        // fetch items including drafts
+        // Extract tenant filter from query filters if present
+        const filters = qs.filters || {};
+        const tenantFilter =
+          filters?.tenant_id?.['$eq'] !== undefined
+            ? filters.tenant_id['$eq']
+            : filters?.tenant_id ?? undefined;
+
+        // If tenant filter is provided but is empty string or null, return empty result
+        if (typeof tenantFilter !== 'undefined' && (tenantFilter === '' || tenantFilter === null)) {
+          return ctx.send({
+            data: [],
+            meta: { pagination: { page, pageSize, pageCount: 0, total: 0 } },
+          });
+        }
+
+        // Build entityService filters if tenantFilter present
+        const esFilters: any = {};
+        if (typeof tenantFilter !== 'undefined') {
+          esFilters.tenant_id = { $eq: tenantFilter };
+        }
+
+        // fetch items including drafts (apply tenant filter if present)
         const entities = await strapi.entityService.findMany('api::page.page', {
           publicationState: 'preview',
           populate,
           limit: pageSize,
           start,
+          ...(Object.keys(esFilters).length ? { filters: esFilters } : {}),
         });
 
-        // total count
-        const total = await strapi.db.query('api::page.page').count();
+        // total count, respect tenant filter when present
+        const total = typeof tenantFilter !== 'undefined'
+          ? await strapi.db.query('api::page.page').count({ where: { tenant_id: tenantFilter } })
+          : await strapi.db.query('api::page.page').count();
+
         const pageCount = pageSize > 0 ? Math.ceil(total / pageSize) : 0;
 
         return ctx.send({

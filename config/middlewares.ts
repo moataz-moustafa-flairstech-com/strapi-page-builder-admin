@@ -7,6 +7,7 @@ export default [
   'strapi::query',
   'strapi::body',
   'strapi::session',
+  'global::tenant',
   'strapi::favicon',
   'strapi::public',
 ];
