@@ -29,6 +29,14 @@
       "required": false,
       "allowedTypes": ["images", "files", "videos"]
     },
+    "tenant_id": {
+      "type": "string",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": false
+        }
+      }
+    },
     "author": {
       "type": "relation",
       "relation": "manyToOne",

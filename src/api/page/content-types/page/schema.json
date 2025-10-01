@@ -41,6 +41,14 @@
       "component": "shared.page-styling-options",
       "required": false
     },
+    "tenant_id": {
+      "type": "string",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": false
+        }
+      }
+    },
     "layout_structure": {
       "type": "json"
     }

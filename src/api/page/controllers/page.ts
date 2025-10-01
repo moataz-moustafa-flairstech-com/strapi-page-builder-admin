@@ -137,6 +137,52 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
       strapi.log.error('Error updating layout_structure:', err);
       return ctx.internalServerError('Error updating layout_structure');
     }
+  },
+
+  // Override find to support publicationState=preview (include drafts)
+  async find(ctx) {
+    const qs: any = ctx.query || {};
+    try {
+      if (qs.publicationState === 'preview') {
+        // pagination
+        const page = qs['pagination[page]'] ? parseInt(String(qs['pagination[page]']), 10) || 1 : 1;
+        const pageSize = qs['pagination[pageSize]'] ? parseInt(String(qs['pagination[pageSize]']), 10) || 25 : 25;
+        const start = (page - 1) * pageSize;
+
+        // populate
+        const populate = qs.populate || '*';
+
+        // fetch items including drafts
+        const entities = await strapi.entityService.findMany('api::page.page', {
+          publicationState: 'preview',
+          populate,
+          limit: pageSize,
+          start,
+        });
+
+        // total count
+        const total = await strapi.db.query('api::page.page').count();
+        const pageCount = pageSize > 0 ? Math.ceil(total / pageSize) : 0;
+
+        return ctx.send({
+          data: entities,
+          meta: {
+            pagination: {
+              page,
+              pageSize,
+              pageCount,
+              total,
+            },
+          },
+        });
+      }
+
+      // Otherwise fall back to default behavior
+      return await super.find(ctx);
+    } catch (err) {
+      strapi.log.error('Error in custom find for pages:', err);
+      return ctx.internalServerError('Error fetching pages');
+    }
   }
 
 }));
