@@ -242,45 +242,7 @@
   "page-templates": [
     {
       "name": "Default two-column",
-      "layout": [
-        {
-          "name": "header",
-          "blocks": [
-            {
-              "__component": "shared.place-holder",
-              "name": "header",
-              "ui_identifier": "header"
-            }
-          ]
-        },
-        {
-          "name": "middle",
-          "blocks_repeat": "horizontal",
-          "blocks_resizable": true,
-          "blocks": [
-            {
-              "__component": "shared.place-holder",
-              "name": "side-panel",
-              "ui_identifier": "side-panel"
-            },
-            {
-              "__component": "shared.place-holder",
-              "name": "middle-content",
-              "ui_identifier": "middle-content"
-            }
-          ]
-        },
-        {
-          "name": "footer",
-          "blocks": [
-            {
-              "__component": "shared.place-holder",
-              "name": "footer",
-              "ui_identifier": "footer"
-            }
-          ]
-        }
-      ]
+      "layout_structure": {}
     }
   ],
   "pages": [
@@ -293,7 +255,6 @@
       "sections": [
         {
           "name": "header",
-          "place_holder_ui_indentifier": "header",
           "blocks": [
             {
               "__component": "shared.media",
@@ -303,7 +264,6 @@
         },
         {
           "name": "Hero",
-          "place_holder_ui_indentifier": "middle-content",
           "blocks": [
             {
               "__component": "shared.rich-text",
@@ -313,7 +273,6 @@
         },
         {
           "name": "Promo",
-          "place_holder_ui_indentifier": "side-panel",
           "blocks": [
             {
               "__component": "shared.quote",
@@ -324,7 +283,6 @@
         },
         {
           "name": "footer",
-          "place_holder_ui_indentifier": "header",
           "blocks": [
             {
               "__component": "shared.rich-text",

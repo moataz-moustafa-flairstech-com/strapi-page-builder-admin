@@ -28,25 +28,16 @@ export default factories.createCoreService('api::page.page', ({ strapi }) => ({
 			return { ok: false, message: 'Missing page_template id' };
 		}
 
-			const template = (await strapi.entityService.findOne('api::page-template.page-template', templateId, {
-				populate: '*',
-			})) as any;
+				const template = (await strapi.entityService.findOne('api::page-template.page-template', templateId, {
+						populate: '*',
+					})) as any;
 
-			if (!template) {
-				return { ok: false, message: `page-template with id ${templateId} not found` };
-			}
+				if (!template) {
+					return { ok: false, message: `page-template with id ${templateId} not found` };
+				}
 
-			const allowed = collectUiIdentifiersFromTemplateLayout(template.layout || []);
-
-		for (const s of sections || []) {
-			if (!s.place_holder_ui_indentifier) {
-				return { ok: false, message: `Section ${s.name || 'unknown'} missing place_holder_ui_indentifier` };
-			}
-			if (!allowed.has(s.place_holder_ui_indentifier)) {
-				return { ok: false, message: `Unknown placeholder identifier: ${s.place_holder_ui_indentifier}` };
-			}
-		}
-
-		return { ok: true };
+				// With layout and placeholder components removed, there are no specific
+				// placeholder validations to perform at this time.
+				return { ok: true };
 	},
 }));

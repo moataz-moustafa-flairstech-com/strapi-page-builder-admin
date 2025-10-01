@@ -11,10 +11,7 @@
       "type": "string",
       "required": true
     },
-    "place_holder_ui_indentifier": {
-      "type": "string",
-      "required": true
-    },
+    
     "blocks": {
       "type": "dynamiczone",
       "components": [

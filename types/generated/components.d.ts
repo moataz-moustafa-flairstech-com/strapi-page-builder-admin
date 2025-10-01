@@ -61,8 +61,6 @@ export interface SharedPageSection extends Struct.ComponentSchema {
       ]
     >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
-    place_holder_ui_indentifier: Schema.Attribute.String &
-      Schema.Attribute.Required;
     style: Schema.Attribute.Component<
       'shared.page-section-styling-options',
       false
