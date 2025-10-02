@@ -512,6 +512,60 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiFormWidgetFormWidget extends Struct.CollectionTypeSchema {
+  collectionName: 'form_widgets';
+  info: {
+    description: 'Form widget collection type';
+    displayName: 'Form Widget';
+    pluralName: 'form-widgets';
+    singularName: 'form-widget';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      mainField: 'name';
+    };
+  };
+  attributes: {
+    action: Schema.Attribute.String;
+    blocks: Schema.Attribute.DynamicZone<
+      [
+        'shared.form-text-input',
+        'shared.form-file-input',
+        'shared.drop-down-list',
+        'shared.radio-buttons-list',
+        'shared.check-box-input',
+        'shared.button-input',
+        'shared.selection-item',
+      ]
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::form-widget.form-widget'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -616,6 +670,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
       'api::page-template.page-template'
     > &
       Schema.Attribute.Required;
+    parent_page_document_id: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     sections: Schema.Attribute.Component<'shared.page-section', true>;
     slug: Schema.Attribute.UID<'name'> &
@@ -1147,6 +1202,7 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
+      'api::form-widget.form-widget': ApiFormWidgetFormWidget;
       'api::global.global': ApiGlobalGlobal;
       'api::page-template.page-template': ApiPageTemplatePageTemplate;
       'api::page.page': ApiPagePage;

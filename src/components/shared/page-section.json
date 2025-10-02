@@ -19,7 +19,18 @@
         "shared.media",
         "shared.quote",
         "shared.rich-text",
-        "shared.slider"
+        "shared.slider",
+        "shared.article-selector",
+        "shared.youtube-player",
+        "shared.google-map-widget",
+        "shared.facebook-feed",
+        "shared.instagram-feed",
+        "shared.social-media-link",
+        "shared.html-block",
+        "shared.accordion-list",
+        "shared.grid",
+        "shared.bulleted-list",
+        "shared.cards-list"
       ]
     },
     "style": {

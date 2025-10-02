@@ -1,0 +1,33 @@
+{
+  "collectionName": "components_shared_youtube_players",
+  "info": {
+    "displayName": "YouTube Player",
+    "icon": "youtube",
+    "description": "Embed a YouTube video"
+  },
+  "options": {},
+  "attributes": {
+    "videoId": {
+      "type": "string",
+      "required": true
+    },
+    "startAt": {
+      "type": "integer",
+      "default": 0
+    },
+    "autoPlay": {
+      "type": "boolean",
+      "default": false
+    },
+    "controls": {
+      "type": "boolean",
+      "default": true
+    },
+    "width": {
+      "type": "integer"
+    },
+    "height": {
+      "type": "integer"
+    }
+  }
+}

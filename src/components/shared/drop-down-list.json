@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_shared_drop_down_lists",
+  "info": { "displayName": "Drop Down List", "icon": "caret-down", "description": "Select input with items" },
+  "options": {},
+  "attributes": {
+    "items": { "type": "component", "repeatable": true, "component": "shared.selection-item" },
+    "defaultKey": { "type": "string" },
+    "multiselect": { "type": "boolean", "default": false }
+  }
+}

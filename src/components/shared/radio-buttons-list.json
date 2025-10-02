@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_radio_buttons_lists",
+  "info": { "displayName": "Radio Buttons List", "icon": "dot-circle-o", "description": "Radio button selection" },
+  "options": {},
+  "attributes": {
+    "items": { "type": "component", "repeatable": true, "component": "shared.selection-item" },
+    "defaultKey": { "type": "string" }
+  }
+}

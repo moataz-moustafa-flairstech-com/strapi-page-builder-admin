@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_accordion_lists",
+  "info": {
+    "displayName": "Accordion List",
+    "icon": "list",
+    "description": "A list of accordion items"
+  },
+  "options": {},
+  "attributes": {
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.accordion-list-item"
+    }
+  }
+}

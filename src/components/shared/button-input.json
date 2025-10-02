@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_button_inputs",
+  "info": { "displayName": "Button Input", "icon": "square-o", "description": "Button for forms" },
+  "options": {},
+  "attributes": {
+    "name": { "type": "string" },
+    "type": { "type": "enumeration", "enum": ["submit", "click"], "default": "click" }
+  }
+}

@@ -51,6 +51,9 @@
     },
     "layout_structure": {
       "type": "json"
+    },
+    "parent_page_document_id": {
+      "type": "string"
     }
   }
 }

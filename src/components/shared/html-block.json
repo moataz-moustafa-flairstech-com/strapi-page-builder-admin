@@ -1,0 +1,8 @@
+{
+  "collectionName": "components_shared_html_blocks",
+  "info": { "displayName": "HTML Block", "icon": "code", "description": "Custom HTML content" },
+  "options": {},
+  "attributes": {
+    "html": { "type": "text" }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_instagram_feeds",
+  "info": { "displayName": "Instagram Feed", "icon": "instagram", "description": "Embed Instagram feed" },
+  "options": {},
+  "attributes": {
+    "profileUrl": { "type": "string" },
+    "embedHtml": { "type": "text" }
+  }
+}

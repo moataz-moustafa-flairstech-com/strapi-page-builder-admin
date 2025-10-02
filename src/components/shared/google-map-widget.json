@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_shared_google_map_widgets",
+  "info": { "displayName": "Google Map Widget", "icon": "map", "description": "Embed a Google Map" },
+  "options": {},
+  "attributes": {
+    "address": { "type": "string" },
+    "latitude": { "type": "decimal" },
+    "longitude": { "type": "decimal" },
+    "zoom": { "type": "integer", "default": 12 },
+    "showMarker": { "type": "boolean", "default": true }
+  }
+}

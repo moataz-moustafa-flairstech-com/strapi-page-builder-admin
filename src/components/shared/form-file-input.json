@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_shared_form_file_inputs",
+  "info": {
+    "displayName": "Form File Input (placeholder)",
+    "icon": "file",
+    "description": "Placeholder component removed; kept minimal to avoid Strapi load errors"
+  },
+  "options": {},
+  "attributes": {}
+}

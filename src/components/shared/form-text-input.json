@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_shared_form_text_inputs",
+  "info": {
+    "displayName": "Form Text Input (placeholder)",
+    "icon": "font",
+    "description": "Placeholder component removed; kept minimal to avoid Strapi load errors"
+  },
+  "options": {},
+  "attributes": {}
+}
