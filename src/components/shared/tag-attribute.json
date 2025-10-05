@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_shared_tag_attributes",
+  "info": {
+    "displayName": "Tag Attribute",
+    "icon": "tag",
+    "description": "A name/value attribute used in header tags"
+  },
+  "options": {},
+  "attributes": {
+    "name": { "type": "string", "required": true },
+    "value": { "type": "string" }
+  }
+}

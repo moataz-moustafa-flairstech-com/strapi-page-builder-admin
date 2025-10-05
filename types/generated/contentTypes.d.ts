@@ -416,7 +416,21 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   attributes: {
     author: Schema.Attribute.Relation<'manyToOne', 'api::author.author'>;
     blocks: Schema.Attribute.DynamicZone<
-      ['shared.media', 'shared.quote', 'shared.rich-text', 'shared.slider']
+      [
+        'shared.media',
+        'shared.quote',
+        'shared.rich-text',
+        'shared.slider',
+        'shared.youtube-player',
+        'shared.google-map-widget',
+        'shared.facebook-feed',
+        'shared.instagram-feed',
+        'shared.social-media-link',
+        'shared.html-block',
+        'shared.accordion-list',
+        'shared.grid',
+        'shared.bulleted-list',
+      ]
     >;
     category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     cover: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
@@ -658,6 +672,13 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    css_string: Schema.Attribute.Text &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: true;
+        };
+      }>;
+    header_tags: Schema.Attribute.Component<'shared.page-header-tag', true>;
     layout_structure: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'> &
@@ -683,6 +704,47 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
           visible: false;
         };
       }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTenantFileTenantFile extends Struct.CollectionTypeSchema {
+  collectionName: 'tenant_files';
+  info: {
+    description: 'Files associated with tenants (references upload document ids)';
+    displayName: 'Tenant File';
+    pluralName: 'tenant-files';
+    singularName: 'tenant-file';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      mainField: 'file_document_id';
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    file_document_id: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tenant-file.tenant-file'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'tenant24'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1206,6 +1268,7 @@ declare module '@strapi/strapi' {
       'api::global.global': ApiGlobalGlobal;
       'api::page-template.page-template': ApiPageTemplatePageTemplate;
       'api::page.page': ApiPagePage;
+      'api::tenant-file.tenant-file': ApiTenantFileTenantFile;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

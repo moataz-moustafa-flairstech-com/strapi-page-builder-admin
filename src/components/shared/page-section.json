@@ -30,7 +30,8 @@
         "shared.accordion-list",
         "shared.grid",
         "shared.bulleted-list",
-        "shared.cards-list"
+        "shared.cards-list",
+        "shared.form-selector"
       ]
     },
     "style": {

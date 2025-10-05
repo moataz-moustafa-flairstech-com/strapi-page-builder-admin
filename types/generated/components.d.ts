@@ -135,30 +135,44 @@ export interface SharedFormFileInput extends Struct.ComponentSchema {
   collectionName: 'components_shared_form_file_inputs';
   info: {
     description: 'Placeholder component removed; kept minimal to avoid Strapi load errors';
-    displayName: 'Form File Input (placeholder)';
+    displayName: 'Form File Input';
     icon: 'file';
   };
-  attributes: {};
+  attributes: {
+    accept: Schema.Attribute.String & Schema.Attribute.DefaultTo<'*'>;
+    name: Schema.Attribute.String;
+  };
 }
 
 export interface SharedFormSelector extends Struct.ComponentSchema {
   collectionName: 'components_shared_form_selectors';
   info: {
     description: 'Placeholder component removed; kept minimal to avoid Strapi load errors';
-    displayName: 'Form Selector (placeholder)';
+    displayName: 'Form Selector';
     icon: 'list-alt';
   };
-  attributes: {};
+  attributes: {
+    form_widget: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::form-widget.form-widget'
+    >;
+  };
 }
 
 export interface SharedFormTextInput extends Struct.ComponentSchema {
   collectionName: 'components_shared_form_text_inputs';
   info: {
     description: 'Placeholder component removed; kept minimal to avoid Strapi load errors';
-    displayName: 'Form Text Input (placeholder)';
+    displayName: 'Form Text Input ';
     icon: 'font';
   };
-  attributes: {};
+  attributes: {
+    defaultValue: Schema.Attribute.String;
+    name: Schema.Attribute.String;
+    placeholder: Schema.Attribute.String;
+    text_type: Schema.Attribute.Enumeration<['text', 'password', 'text_area']> &
+      Schema.Attribute.DefaultTo<'text'>;
+  };
 }
 
 export interface SharedGoogleMapWidget extends Struct.ComponentSchema {
@@ -243,6 +257,19 @@ export interface SharedMedia extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedPageHeaderTag extends Struct.ComponentSchema {
+  collectionName: 'components_shared_page_header_tags';
+  info: {
+    description: 'A header tag with attributes to be rendered in the page head';
+    displayName: 'Page Header Tag';
+    icon: 'header';
+  };
+  attributes: {
+    attributes: Schema.Attribute.Component<'shared.tag-attribute', true>;
+    tag_name: Schema.Attribute.String & Schema.Attribute.Required;
+  };
+}
+
 export interface SharedPageSection extends Struct.ComponentSchema {
   collectionName: 'components_shared_page_sections';
   info: {
@@ -269,6 +296,7 @@ export interface SharedPageSection extends Struct.ComponentSchema {
         'shared.grid',
         'shared.bulleted-list',
         'shared.cards-list',
+        'shared.form-selector',
       ]
     >;
     name: Schema.Attribute.String & Schema.Attribute.Required;
@@ -468,6 +496,19 @@ export interface SharedSocialMediaLink extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedTagAttribute extends Struct.ComponentSchema {
+  collectionName: 'components_shared_tag_attributes';
+  info: {
+    description: 'A name/value attribute used in header tags';
+    displayName: 'Tag Attribute';
+    icon: 'tag';
+  };
+  attributes: {
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    value: Schema.Attribute.String;
+  };
+}
+
 export interface SharedYoutubePlayer extends Struct.ComponentSchema {
   collectionName: 'components_shared_youtube_players';
   info: {
@@ -480,6 +521,7 @@ export interface SharedYoutubePlayer extends Struct.ComponentSchema {
     controls: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     height: Schema.Attribute.Integer;
     startAt: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    url: Schema.Attribute.String;
     videoId: Schema.Attribute.String & Schema.Attribute.Required;
     width: Schema.Attribute.Integer;
   };
@@ -507,6 +549,7 @@ declare module '@strapi/strapi' {
       'shared.instagram-feed': SharedInstagramFeed;
       'shared.layout-repeater': SharedLayoutRepeater;
       'shared.media': SharedMedia;
+      'shared.page-header-tag': SharedPageHeaderTag;
       'shared.page-section': SharedPageSection;
       'shared.page-section-styling-options': SharedPageSectionStylingOptions;
       'shared.page-styling-options': SharedPageStylingOptions;
@@ -518,6 +561,7 @@ declare module '@strapi/strapi' {
       'shared.seo': SharedSeo;
       'shared.slider': SharedSlider;
       'shared.social-media-link': SharedSocialMediaLink;
+      'shared.tag-attribute': SharedTagAttribute;
       'shared.youtube-player': SharedYoutubePlayer;
     }
   }

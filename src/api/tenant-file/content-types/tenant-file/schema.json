@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tenant_files",
+  "info": {
+    "singularName": "tenant-file",
+    "pluralName": "tenant-files",
+    "displayName": "Tenant File",
+    "description": "Files associated with tenants (references upload document ids)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "mainField": "file_document_id"
+    }
+  },
+  "attributes": {
+    "file_document_id": {
+      "type": "string",
+      "required": true,
+      "description": "Upload plugin document id (plugin::upload.file document id)"
+    },
+    "tenant_id": {
+      "type": "string",
+      "default": "tenant24",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": true
+        }
+      }
+    }
+  }
+}
