@@ -23,18 +23,17 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
   },
 
   async update(ctx) {
-    // No placeholder identifier validation required after removing placeholder components
-    // keep page_template and sections available for other logic
+    // Update by documentId (draft) and ensure tenant matches. Also update published version if present.
     const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
-    const { id } = ctx.params || {};
+    const { id: documentId } = ctx.params || {};
 
-    if (!id) return ctx.badRequest('Missing id');
+    if (!documentId) return ctx.badRequest('Missing document id');
 
-    // fetch existing entry to verify tenant
-    const existing = await strapi.entityService.findOne('api::page.page', id, { fields: ['tenant_id'] });
-    if (!existing) return ctx.notFound('Page not found');
+    // Find draft document by documentId
+    const draft = await strapi.documents('api::page.page').findOne({ documentId, status: 'draft', populate: {} as any });
+    if (!draft) return ctx.notFound('Draft not found');
 
-    const existingTenant = existing?.tenant_id;
+    const existingTenant = (draft as any)?.tenant_id;
     if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
       return ctx.forbidden('You are not allowed to modify this entry');
     }
@@ -44,7 +43,57 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
       delete ctx.request.body.data.tenant_id;
     }
 
-    return await super.update(ctx);
+    // Ensure super.update updates the draft by setting ctx.params.id to internal id
+    ctx.params = ctx.params || {};
+    ctx.params.id = (draft as any).id;
+
+    const updated = await super.update(ctx);
+
+    // Also update the published version with the same data if it exists and belongs to the same tenant
+    try {
+      const published = await strapi.documents('api::page.page').findOne({ documentId, status: 'published', populate: {} as any });
+      if (published) {
+        const publishedTenant = (published as any)?.tenant_id;
+        if (typeof tokenTenant === 'undefined' || publishedTenant === tokenTenant) {
+          // update published document with the same payload (if any)
+          const publishUpdateData = ctx.request?.body?.data ? ctx.request.body.data : {};
+          await strapi.documents('api::page.page').update({ documentId, status: 'published', data: publishUpdateData as any });
+        }
+      }
+    } catch (err) {
+      // log but don't fail the whole request
+      strapi.log.error('Error updating published document after draft update:', err);
+    }
+
+    return updated;
+  },
+
+  // Tenant-aware publish action
+  async publish(ctx) {
+    const { id: documentId } = ctx.params || {};
+    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+
+    if (!documentId) return ctx.badRequest('Missing document id');
+    if (!tokenTenant) return ctx.badRequest('Missing tenant_id in token');
+
+    try {
+      // Ensure draft exists and belongs to tenant
+      const draft = await strapi.documents('api::page.page').findOne({ documentId, status: 'draft', populate: {} as any });
+      if (!draft) return ctx.notFound('Draft not found');
+
+      const existingTenant = (draft as any)?.tenant_id;
+      if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+        return ctx.forbidden('You are not allowed to publish this entry');
+      }
+
+      const published = await strapi.documents('api::page.page').publish({ documentId });
+      if (!published) return ctx.internalServerError('Publish failed');
+
+      return this.transformResponse(published);
+    } catch (err) {
+      strapi.log.error('Error publishing page document:', err);
+      return ctx.internalServerError('Error publishing page');
+    }
   },
 
   // Custom preview method to handle both draft and published content

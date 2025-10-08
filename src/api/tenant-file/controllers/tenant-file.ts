@@ -1,129 +1,153 @@
+/**
+ * tenant-file controller
+ */
+
 import { factories } from '@strapi/strapi';
 
-export default factories.createCoreController(('api::tenant-file.tenant-file') as any, ({ strapi }) => ({
-  async create(ctx) {
-    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+export default factories.createCoreController('api::tenant-file.tenant-file', ({ strapi }) => ({
+		async find(ctx) {
+			// Enforce tenant filter from token if present
+			const qs: any = ctx.query || {};
+			const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
 
-    // set tenant_id from token or default
-    ctx.request.body = ctx.request.body || {};
-    ctx.request.body.data = ctx.request.body.data || {};
-    ctx.request.body.data.tenant_id = tokenTenant || ctx.request.body.data.tenant_id || 'tenant24';
+			if (!qs.filters) qs.filters = {};
+			if (typeof tokenTenant !== 'undefined') {
+				qs.filters.tenant_id = { $eq: tokenTenant };
+				ctx.query = qs;
+			}
 
-    return await super.create(ctx);
-  },
+			// Call core implementation
+			const result = await super.find(ctx);
 
-  async update(ctx) {
-    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
-    const { id } = ctx.params || {};
+			try {
+				const items = Array.isArray(result?.data) ? result.data : [];
+			const docIds = items
+				.map((entry: any) => {
+					if (entry?.attributes && entry.attributes.file_document_id) return entry.attributes.file_document_id;
+					if (entry?.file_document_id) return entry.file_document_id;
+					return null;
+				})
+				.filter(Boolean);
 
-    if (!id) return ctx.badRequest('Missing id');
+			if (docIds.length === 0) return result;
 
-  const existing = await (strapi.entityService as any).findOne('api::tenant-file.tenant-file', id, { fields: ['tenant_id'] });
-  if (!existing) return ctx.notFound('Tenant file not found');
+			// Fetch upload files by their documentId
+					const uploadFiles = await (strapi.entityService as any).findMany('plugin::upload.file', {
+						filters: { documentId: { $in: docIds } },
+						populate: '*',
+					});
 
-  const existingTenant = (existing as any)?.tenant_id;
-    if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
-      return ctx.forbidden('You are not allowed to modify this entry');
-    }
+			const uploadByDocumentId = new Map(uploadFiles.map((f: any) => [String(f.documentId), f]));
 
-    if (ctx.request?.body?.data) {
-      delete ctx.request.body.data.tenant_id;
-    }
+			// Attach upload metadata to each item as `upload`
+			result.data = items.map((entry: any) => {
+				const docId = entry?.attributes?.file_document_id ?? entry?.file_document_id;
+				const upload = docId ? uploadByDocumentId.get(String(docId)) ?? null : null;
+				if (entry?.attributes) {
+					entry.attributes.upload = upload;
+				} else {
+					entry.upload = upload;
+				}
+				return entry;
+			});
+		} catch (err) {
+			strapi.log.error('Error enriching tenant-file find with upload files:', err);
+		}
 
-    return await super.update(ctx);
-  },
+		return result;
+	},
 
-  async delete(ctx) {
-    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
-    const { id } = ctx.params || {};
+	async findOne(ctx) {
+			// Enforce tenant ownership when fetching a single item
+			const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
 
-    if (!id) return ctx.badRequest('Missing id');
+			const result = await super.findOne(ctx);
 
-  const existing = await (strapi.entityService as any).findOne('api::tenant-file.tenant-file', id, { fields: ['tenant_id'] });
-  if (!existing) return ctx.notFound('Tenant file not found');
+		try {
+				const entry = result?.data || result;
+				// Check tenant ownership
+				const existingTenant = entry?.attributes?.tenant_id ?? entry?.tenant_id;
+				if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+					return ctx.forbidden('You are not allowed to view this entry');
+				}
+			const docId = entry?.attributes?.file_document_id ?? entry?.file_document_id;
+			if (!docId) return result;
 
-  const existingTenant = (existing as any)?.tenant_id;
-    if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
-      return ctx.forbidden('You are not allowed to delete this entry');
-    }
+					const uploadFiles = await (strapi.entityService as any).findMany('plugin::upload.file', {
+						filters: { documentId: { $eq: docId } },
+						populate: '*',
+					});
 
-    return await super.delete(ctx);
-  },
+			const upload = Array.isArray(uploadFiles) && uploadFiles.length ? uploadFiles[0] : null;
 
-  async find(ctx) {
-    const qs: any = ctx.query || {};
-    try {
-      const filters = qs.filters || {};
-      const tenantFilter =
-        filters?.tenant_id?.['$eq'] !== undefined
-          ? filters.tenant_id['$eq']
-          : filters?.tenant_id ?? undefined;
+			if (entry?.attributes) {
+				entry.attributes.upload = upload;
+				result.data = entry;
+			} else if (result?.data) {
+				result.data.upload = upload;
+			} else {
+				// fallback shape
+				result.upload = upload;
+			}
+		} catch (err) {
+			strapi.log.error('Error enriching tenant-file findOne with upload file:', err);
+		}
 
-      if (typeof tenantFilter !== 'undefined' && (tenantFilter === '' || tenantFilter === null)) {
-        return ctx.send({ data: [], meta: { pagination: { page: 1, pageSize: 0, pageCount: 0, total: 0 } } });
-      }
+		return result;
+	},
 
-      if (typeof tenantFilter !== 'undefined') {
-        qs.filters = { tenant_id: tenantFilter };
-      }
+	async create(ctx) {
+		const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
 
-      return await super.find(ctx);
-    } catch (err) {
-      strapi.log.error('Error in tenant-file find:', err);
-      return ctx.internalServerError('Error fetching tenant files');
-    }
-  },
+		if (!tokenTenant) {
+			return ctx.badRequest('Missing tenant_id in token');
+		}
 
-  // Helper endpoint to fetch the upload file metadata by document id
-  async uploadFile(ctx) {
-    const { documentId } = ctx.params || {};
-    if (!documentId) return ctx.badRequest('Missing documentId');
+		// Ensure tenant_id is set from token and cannot be overridden by client
+		ctx.request.body = ctx.request.body || {};
+		ctx.request.body.data = ctx.request.body.data || {};
+		ctx.request.body.data.tenant_id = tokenTenant;
 
-    try {
-  const file = await (strapi.entityService as any).findOne('plugin::upload.file', documentId, { populate: '*' });
-      if (!file) return ctx.notFound('Upload file not found');
-      return ctx.send({ data: file });
-    } catch (err) {
-      strapi.log.error('Error fetching upload file:', err);
-      return ctx.internalServerError('Error fetching upload file');
-    }
-  },
+		return await super.create(ctx);
+	},
 
+	async update(ctx) {
+		const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+		const { id } = ctx.params || {};
 
-  // Upload a new binary file via the upload plugin and create a tenant-file mapping
-  async UploadNewFile(ctx) {
-    try {
-      const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id || 'tenant24';
+		if (!id) return ctx.badRequest('Missing id');
 
-      // Koa/Strapi parses multipart/form-data into ctx.request.files
-      const files = (ctx.request as any).files || (ctx.req as any).files;
-      if (!files) {
-        return ctx.badRequest('No file provided');
-      }
+		// Find existing entry and verify tenant
+		const existing = await strapi.entityService.findOne('api::tenant-file.tenant-file', id, { fields: ['tenant_id'] } as any);
+		if (!existing) return ctx.notFound('Tenant-file not found');
 
-      const uploadService = (strapi.plugin as any)('upload').service('upload');
+		const existingTenant = existing?.tenant_id;
+		if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+			return ctx.forbidden('You are not allowed to modify this entry');
+		}
 
-      // Use upload service: it expects { data, files }
-      const uploaded = await uploadService.upload({ data: {}, files });
+		// Prevent changing tenant_id via update
+		if (ctx.request?.body?.data) {
+			delete ctx.request.body.data.tenant_id;
+		}
 
-      if (!uploaded || !Array.isArray(uploaded) || uploaded.length === 0) {
-        return ctx.internalServerError('Upload failed');
-      }
+		return await super.update(ctx);
+	},
 
-      const uploadedFile = uploaded[0];
+	async delete(ctx) {
+		const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+		const { id } = ctx.params || {};
 
-      // Create tenant-file entry mapping to the upload file id
-      const tenantFile = await (strapi.entityService as any).create('api::tenant-file.tenant-file', {
-        data: {
-          file_document_id: String(uploadedFile.id),
-          tenant_id: tokenTenant,
-        },
-      });
+		if (!id) return ctx.badRequest('Missing id');
 
-      return ctx.send({ documentId: tenantFile.id, file: uploadedFile });
-    } catch (err) {
-      strapi.log.error('Error in UploadNewFile:', err);
-      return ctx.internalServerError('Error uploading file');
-    }
-  }
+		const existing = await strapi.entityService.findOne('api::tenant-file.tenant-file', id, { fields: ['tenant_id'] } as any);
+		if (!existing) return ctx.notFound('Tenant-file not found');
+
+		const existingTenant = existing?.tenant_id;
+		if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+			return ctx.forbidden('You are not allowed to delete this entry');
+		}
+
+		return await super.delete(ctx);
+	},
 }));
