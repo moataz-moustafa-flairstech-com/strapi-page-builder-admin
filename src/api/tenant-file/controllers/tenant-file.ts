@@ -6,6 +6,8 @@ import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController('api::tenant-file.tenant-file', ({ strapi }) => ({
 		async find(ctx) {
+
+      strapi.log.info('Custom tenant-file find called');
 			// Enforce tenant filter from token if present
 			const qs: any = ctx.query || {};
 			const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
@@ -15,9 +17,12 @@ export default factories.createCoreController('api::tenant-file.tenant-file', ({
 				qs.filters.tenant_id = { $eq: tokenTenant };
 				ctx.query = qs;
 			}
-
+      strapi.log.info('Query after tenant enforcement:', tokenTenant);
 			// Call core implementation
 			const result = await super.find(ctx);
+
+      strapi.log.info('Query after tenant enforcement:', tokenTenant);
+
 
 			try {
 				const items = Array.isArray(result?.data) ? result.data : [];

@@ -27,6 +27,7 @@ export default {
       .issue({ id: user.id, email: user.email, tenant_id });
 
     const { password: _p, ...safeUser } = user;
+    strapi.log.info(`User ${user.email} logged in for tenant ${tenant_id}`);
     return ctx.send({ jwt, user: safeUser });
   },
 
@@ -64,6 +65,7 @@ export default {
     });
 
     const { password: _p, ...safeUser } = user;
+    strapi.log.info(`New user registered: ${user.email} with role ${roleName}`);
     return ctx.send({ user: safeUser });
   },
 };

@@ -16,13 +16,15 @@ export default (config, { strapi }) => {
           ctx.state.jwtPayload = payload;
           if (payload.tenant_id) ctx.state.tenantIdFromToken = payload.tenant_id;
           if (payload.email) ctx.state.userEmailFromToken = payload.email;
+          strapi.log.info('Tenant retrieved: ' + ctx.state.tenantIdFromToken);
+
         } catch (e) {
           // invalid token - do not throw, let auth handle it
-          strapi.log.debug('Invalid JWT in tenant middleware');
+          strapi.log.info('Invalid JWT in tenant middleware');
         }
       }
     } catch (err) {
-      strapi.log.error('Error in tenant middleware', err);
+      strapi.log.info('Error in tenant middleware', err);
     }
 
     await next();
