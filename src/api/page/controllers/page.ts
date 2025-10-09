@@ -22,12 +22,15 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
     return await super.create(ctx);
   },
 
-  async update(ctx) {
-    // Update by documentId (draft) and ensure tenant matches. Also update published version if present.
+  async tenantUpdate(ctx) {
+      // Update by documentId (draft) and ensure tenant matches. Also update published version if present.
     const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
-    const { id: documentId } = ctx.params || {};
+    strapi.log.info('tenantUpdate: Page update requested with ctx.params: ' + JSON.stringify(ctx.params));
+    const { id } = ctx.params || {};
 
-    if (!documentId) return ctx.badRequest('Missing document id');
+    const documentId = id;
+    strapi.log.info('tenantUpdate: documentId: ' + documentId);
+    if (!documentId) return ctx.badRequest('tenantUpdate: Entity is missing documentId');
 
     // Find draft document by documentId
     const draft = await strapi.documents('api::page.page').findOne({ documentId, status: 'draft', populate: {} as any });
@@ -38,35 +41,42 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
       return ctx.forbidden('You are not allowed to modify this entry');
     }
 
-    // prevent tenant_id from changing
-    if (ctx.request?.body?.data) {
-      delete ctx.request.body.data.tenant_id;
+     // prevent tenant_id from changing
+     if (ctx.request?.body?.data) {
+       delete ctx.request.body.data.tenant_id;
     }
 
-    // Ensure super.update updates the draft by setting ctx.params.id to internal id
-    ctx.params = ctx.params || {};
-    ctx.params.id = (draft as any).id;
-
-    const updated = await super.update(ctx);
+    strapi.log.info('Updating draft documentId=' + documentId + ' (internal id=' + ctx.params.id + ') for tenant_id=' + existingTenant);
+    const updateData = ctx.request?.body?.data || {};
+    const updated = await strapi.documents('api::page.page').update({
+      documentId,
+      status: 'draft',
+      data: updateData,
+    });
+    strapi.log.info('Finished updating draft documentId=' + documentId + ' (internal id=' + ctx.params.id + ') for tenant_id=' + existingTenant);
 
     // Also update the published version with the same data if it exists and belongs to the same tenant
     try {
-      const published = await strapi.documents('api::page.page').findOne({ documentId, status: 'published', populate: {} as any });
-      if (published) {
-        const publishedTenant = (published as any)?.tenant_id;
-        if (typeof tokenTenant === 'undefined' || publishedTenant === tokenTenant) {
-          // update published document with the same payload (if any)
-          const publishUpdateData = ctx.request?.body?.data ? ctx.request.body.data : {};
-          await strapi.documents('api::page.page').update({ documentId, status: 'published', data: publishUpdateData as any });
-        }
+      const published = await strapi
+        .documents('api::page.page')
+        .findOne({ documentId, status: 'published' });
+
+      if (published && (!tokenTenant || published.tenant_id === tokenTenant)) {
+        await strapi.documents('api::page.page').update({
+          documentId,
+          status: 'published',
+          data: updateData,
+        });
       }
     } catch (err) {
-      // log but don't fail the whole request
       strapi.log.error('Error updating published document after draft update:', err);
     }
 
     return updated;
+
+  
   },
+  
 
   // Tenant-aware publish action
   async publish(ctx) {
