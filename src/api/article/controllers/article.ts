@@ -16,18 +16,46 @@ export default factories.createCoreController('api::article.article', ({ strapi 
     return await super.create(ctx);
   },
 
-  async update(ctx) {
+  async tenantUpdate(ctx) {
+    // Document-aware update (draft/published) similar to pages
     const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
     const { id } = ctx.params || {};
-    if (!id) return ctx.badRequest('Missing id');
 
-    const existing = await strapi.entityService.findOne('api::article.article', id, { fields: ['tenant_id'] });
-    if (!existing) return ctx.notFound('Article not found');
-    if (typeof tokenTenant !== 'undefined' && existing.tenant_id !== tokenTenant) return ctx.forbidden('You are not allowed to modify this article');
+    const documentId = id;
+    if (!documentId) return ctx.badRequest('tenantUpdate: Entity is missing documentId');
 
-    if (ctx.request?.body?.data) delete ctx.request.body.data.tenant_id;
+    // Find draft document by documentId
+    const draft = await strapi.documents('api::article.article').findOne({ documentId, status: 'draft', populate: {} as any });
+    if (!draft) return ctx.notFound('Draft not found');
 
-    return await super.update(ctx);
+    const existingTenant = (draft as any)?.tenant_id;
+    if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+      return ctx.forbidden('You are not allowed to modify this entry');
+    }
+
+    // prevent tenant_id from changing
+    if (ctx.request?.body?.data) {
+      delete ctx.request.body.data.tenant_id;
+    }
+
+    const updateData = ctx.request?.body?.data || {};
+    const updated = await strapi.documents('api::article.article').update({
+      documentId,
+      status: 'draft',
+      data: updateData,
+    });
+
+    // Also update published version if present and tenant matches
+    try {
+      const published = await strapi.documents('api::article.article').findOne({ documentId, status: 'published' });
+      if (published && (!tokenTenant || published.tenant_id === tokenTenant)) {
+        await strapi.documents('api::article.article').update({ documentId, status: 'published', data: updateData });
+      }
+    } catch (err) {
+      strapi.log.error('Error updating published document after draft update (article):', err);
+    }
+
+    return updated;
   },
 
   async delete(ctx) {

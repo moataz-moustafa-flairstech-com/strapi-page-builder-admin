@@ -141,35 +141,6 @@ export default factories.createCoreController('api::tenant-file.tenant-file', ({
 		return await super.create(ctx);
 	},
 
-	async update(ctx) {
-		const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
-		const { id } = ctx.params || {};
-
-		if (!id) return ctx.badRequest('Missing id');
-
-		// Use low-level DB query to fetch the existing row (avoid entityService.findOne as requested)
-		let existing: any = null;
-		try {
-			existing = await strapi.db.query('api::tenant-file.tenant-file').findOne({ where: { id }, select: ['id', 'tenant_id'] });
-		} catch (err) {
-			strapi.log.error('Error looking up tenant-file for update via db.query:', err);
-			return ctx.internalServerError('Error looking up tenant-file');
-		}
-
-		if (!existing) return ctx.notFound('Tenant-file not found');
-
-		const existingTenant = existing?.tenant_id;
-		if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
-			return ctx.forbidden('You are not allowed to modify this entry');
-		}
-
-		// Prevent changing tenant_id via update
-		if (ctx.request?.body?.data) {
-			delete ctx.request.body.data.tenant_id;
-		}
-
-		return await super.update(ctx);
-	},
 
 	async delete(ctx) {
 		const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
