@@ -63,10 +63,35 @@ export default factories.createCoreController('api::tenant-file.tenant-file', ({
 	},
 
 	async findOne(ctx) {
-			// Enforce tenant ownership when fetching a single item
-			const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+		// Enforce tenant ownership when fetching a single item
+		const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
 
-			const result = await super.findOne(ctx);
+		const requestedId = ctx.params?.id;
+		strapi.log.info(`tenant-file.findOne called id=${requestedId}, tokenTenant=${tokenTenant}`);
+
+		// Try to resolve the requested identifier to an actual DB row.
+		// Accept either a numeric PK or a file_document_id (documentId) passed in the URL.
+		let rawRow: any = null;
+		try {
+			// First try by primary id (as passed)
+			rawRow = await strapi.db.query('api::tenant-file.tenant-file').findOne({ where: { id: requestedId } });
+
+			// If not found and requestedId looks like a non-numeric documentId, try lookup by file_document_id
+			if (!rawRow && requestedId && isNaN(Number(requestedId))) {
+				rawRow = await strapi.db.query('api::tenant-file.tenant-file').findOne({ where: { file_document_id: requestedId } });
+				if (rawRow) {
+					// Rewrite params.id so that the core controller will fetch the correct entity by PK
+					ctx.params = ctx.params || {};
+					ctx.params.id = rawRow.id;
+				}
+			}
+
+			strapi.log.info('tenant-file.rawRow=' + JSON.stringify(rawRow));
+		} catch (err) {
+			strapi.log.error('Error running raw DB lookup for tenant-file.findOne', err);
+		}
+
+		const result = await super.findOne(ctx);
 
 		try {
 				const entry = result?.data || result;
@@ -122,8 +147,15 @@ export default factories.createCoreController('api::tenant-file.tenant-file', ({
 
 		if (!id) return ctx.badRequest('Missing id');
 
-		// Find existing entry and verify tenant
-		const existing = await strapi.entityService.findOne('api::tenant-file.tenant-file', id, { fields: ['tenant_id'] } as any);
+		// Use low-level DB query to fetch the existing row (avoid entityService.findOne as requested)
+		let existing: any = null;
+		try {
+			existing = await strapi.db.query('api::tenant-file.tenant-file').findOne({ where: { id }, select: ['id', 'tenant_id'] });
+		} catch (err) {
+			strapi.log.error('Error looking up tenant-file for update via db.query:', err);
+			return ctx.internalServerError('Error looking up tenant-file');
+		}
+
 		if (!existing) return ctx.notFound('Tenant-file not found');
 
 		const existingTenant = existing?.tenant_id;
@@ -153,6 +185,20 @@ export default factories.createCoreController('api::tenant-file.tenant-file', ({
 			return ctx.forbidden('You are not allowed to delete this entry');
 		}
 
-		return await super.delete(ctx);
+		// Log existing entry for debugging
+		strapi.log.info(`Deleting tenant-file id=${id}, tenant_id=${existingTenant}`);
+
+		// Use entityService.delete directly to ensure deletion and inspect result
+		try {
+			const deleted = await strapi.entityService.delete('api::tenant-file.tenant-file', id as any);
+			strapi.log.info('Tenant-file deleted result: ' + JSON.stringify(deleted));
+			// Return 204 No Content on successful deletion
+			ctx.status = 204;
+			ctx.body = null;
+			return;
+		} catch (err) {
+			strapi.log.error('Error deleting tenant-file via entityService:', err);
+			return ctx.internalServerError('Error deleting tenant-file');
+		}
 	},
 }));
