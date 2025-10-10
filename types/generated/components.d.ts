@@ -34,7 +34,6 @@ export interface SharedArticleSelector extends Struct.ComponentSchema {
   };
   attributes: {
     article: Schema.Attribute.Relation<'oneToOne', 'api::article.article'>;
-    article_id: Schema.Attribute.Integer;
   };
 }
 

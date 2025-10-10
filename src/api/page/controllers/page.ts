@@ -130,7 +130,7 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
                 'shared.slider': { populate: { files: true } },
                 'shared.accordion-list': true,
                 'shared.accordion-list-item': true,
-                'shared.article-selector': true,
+                'shared.article-selector': { populate: { article: true } },
                 'shared.bulleted-list': true,
                 'shared.button-input': true,
                 'shared.cards-list': true,

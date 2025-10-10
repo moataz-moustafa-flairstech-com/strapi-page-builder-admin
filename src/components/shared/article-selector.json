@@ -7,9 +7,6 @@
   },
   "options": {},
   "attributes": {
-    "article_id": {
-      "type": "integer"
-    },
     "article": {
       "type": "relation",
       "relation": "oneToOne",
