@@ -17,17 +17,19 @@
       "required": true,
       "unique": true
     },
-    "layout": {
-      "type": "component",
-      "repeatable": true,
-      "component": "shared.layout-repeater",
-      "required": true
-    },
     "pages": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::page.page",
       "mappedBy": "page_template",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": false
+        }
+      }
+    },
+    "tenant_id": {
+      "type": "string",
       "pluginOptions": {
         "content-manager": {
           "visible": false

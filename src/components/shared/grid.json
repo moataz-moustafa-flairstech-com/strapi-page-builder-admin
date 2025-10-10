@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_grids",
+  "info": { "displayName": "Grid", "icon": "th", "description": "Grid layout container" },
+  "options": {},
+  "attributes": {
+    "columns": { "type": "integer", "default": 3 },
+    "gap": { "type": "string", "default": "normal" }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_shared_page_header_tags",
+  "info": {
+    "displayName": "Page Header Tag",
+    "icon": "header",
+    "description": "A header tag with attributes to be rendered in the page head"
+  },
+  "options": {},
+  "attributes": {
+    "tag_name": { "type": "string", "required": true },
+    "attributes": { "type": "component", "repeatable": true, "component": "shared.tag-attribute" }
+  }
+}

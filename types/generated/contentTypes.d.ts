@@ -416,7 +416,21 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
   attributes: {
     author: Schema.Attribute.Relation<'manyToOne', 'api::author.author'>;
     blocks: Schema.Attribute.DynamicZone<
-      ['shared.media', 'shared.quote', 'shared.rich-text', 'shared.slider']
+      [
+        'shared.media',
+        'shared.quote',
+        'shared.rich-text',
+        'shared.slider',
+        'shared.youtube-player',
+        'shared.google-map-widget',
+        'shared.facebook-feed',
+        'shared.instagram-feed',
+        'shared.social-media-link',
+        'shared.html-block',
+        'shared.accordion-list',
+        'shared.grid',
+        'shared.bulleted-list',
+      ]
     >;
     category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
     cover: Schema.Attribute.Media<'images' | 'files' | 'videos'>;
@@ -435,6 +449,12 @@ export interface ApiArticleArticle extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'title'>;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+      }>;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -506,6 +526,60 @@ export interface ApiCategoryCategory extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiFormWidgetFormWidget extends Struct.CollectionTypeSchema {
+  collectionName: 'form_widgets';
+  info: {
+    description: 'Form widget collection type';
+    displayName: 'Form Widget';
+    pluralName: 'form-widgets';
+    singularName: 'form-widget';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      mainField: 'name';
+    };
+  };
+  attributes: {
+    action: Schema.Attribute.String;
+    blocks: Schema.Attribute.DynamicZone<
+      [
+        'shared.form-text-input',
+        'shared.form-file-input',
+        'shared.drop-down-list',
+        'shared.radio-buttons-list',
+        'shared.check-box-input',
+        'shared.button-input',
+        'shared.selection-item',
+      ]
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::form-widget.form-widget'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   collectionName: 'globals';
   info: {
@@ -554,8 +628,6 @@ export interface ApiPageTemplatePageTemplate
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    layout: Schema.Attribute.Component<'shared.layout-repeater', true> &
-      Schema.Attribute.Required;
     layout_structure: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -573,6 +645,12 @@ export interface ApiPageTemplatePageTemplate
         };
       }>;
     publishedAt: Schema.Attribute.DateTime;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+      }>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -594,6 +672,13 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    css_string: Schema.Attribute.Text &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: true;
+        };
+      }>;
+    header_tags: Schema.Attribute.Component<'shared.page-header-tag', true>;
     layout_structure: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'> &
@@ -606,12 +691,60 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
       'api::page-template.page-template'
     > &
       Schema.Attribute.Required;
+    parent_page_document_id: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     sections: Schema.Attribute.Component<'shared.page-section', true>;
     slug: Schema.Attribute.UID<'name'> &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     style: Schema.Attribute.Component<'shared.page-styling-options', false>;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: false;
+        };
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiTenantFileTenantFile extends Struct.CollectionTypeSchema {
+  collectionName: 'tenant_files';
+  info: {
+    description: 'Files associated with tenants (references upload document ids)';
+    displayName: 'Tenant File';
+    pluralName: 'tenant-files';
+    singularName: 'tenant-file';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      mainField: 'file_document_id';
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    file_document_id: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::tenant-file.tenant-file'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    tenant_id: Schema.Attribute.String &
+      Schema.Attribute.SetPluginOptions<{
+        'content-manager': {
+          visible: true;
+        };
+      }> &
+      Schema.Attribute.DefaultTo<'tenant24'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1131,9 +1264,11 @@ declare module '@strapi/strapi' {
       'api::article.article': ApiArticleArticle;
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
+      'api::form-widget.form-widget': ApiFormWidgetFormWidget;
       'api::global.global': ApiGlobalGlobal;
       'api::page-template.page-template': ApiPageTemplatePageTemplate;
       'api::page.page': ApiPagePage;
+      'api::tenant-file.tenant-file': ApiTenantFileTenantFile;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

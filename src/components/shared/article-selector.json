@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_article_selectors",
+  "info": {
+    "displayName": "Article Selector",
+    "icon": "link",
+    "description": "Select or link to an Article"
+  },
+  "options": {},
+  "attributes": {
+    "article": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::article.article"
+    }
+  }
+}

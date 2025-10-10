@@ -19,6 +19,8 @@ export default {
   async bootstrap({ strapi }: { strapi: Core.Strapi }) {
     // Set up public permissions for preview endpoints
     await setPublicPermissionsForPreview(strapi);
+    // Ensure tenant roles exist
+    await ensureTenantRoles(strapi);
   },
 };
 
@@ -70,5 +72,32 @@ async function setPublicPermissionsForPreview(strapi: Core.Strapi) {
     }
   } catch (error) {
     strapi.log.error('Error setting up preview permissions:', error);
+  }
+}
+
+async function ensureTenantRoles(strapi: Core.Strapi) {
+  try {
+    const roleNames = ['Authenticated', 'Editors', 'Admins'];
+
+    const existing = await strapi.query('plugin::users-permissions.role').findMany({
+      where: { name: { $in: roleNames } },
+    });
+
+    const existingNames = existing.map(r => r.name);
+
+    const toCreate = roleNames.filter(n => !existingNames.includes(n));
+
+    for (const name of toCreate) {
+      await strapi.query('plugin::users-permissions.role').create({
+        data: {
+          name,
+          description: `${name} role (seeded)`,
+          type: name === 'Authenticated' ? 'authenticated' : name.toLowerCase(),
+        },
+      });
+      strapi.log.info(`Seeded role: ${name}`);
+    }
+  } catch (err) {
+    strapi.log.error('Error ensuring tenant roles:', err);
   }
 }

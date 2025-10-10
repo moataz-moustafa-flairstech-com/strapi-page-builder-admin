@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_shared_social_media_links",
+  "info": { "displayName": "Social Media Link", "icon": "share-alt", "description": "Link to a social profile" },
+  "options": {},
+  "attributes": {
+    "platform": { "type": "enumeration", "enum": ["facebook","instagram","twitter","linkedin","youtube","other"], "default": "other" },
+    "url": { "type": "string" },
+    "title": { "type": "string" }
+  }
+}

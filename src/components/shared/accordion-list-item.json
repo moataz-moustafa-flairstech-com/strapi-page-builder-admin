@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_shared_accordion_list_items",
+  "info": {
+    "displayName": "Accordion List Item",
+    "icon": "chevron-down",
+    "description": "An item for an accordion list"
+  },
+  "options": {},
+  "attributes": {
+    "title": { "type": "string", "required": true },
+    "description": { "type": "text" }
+  }
+}

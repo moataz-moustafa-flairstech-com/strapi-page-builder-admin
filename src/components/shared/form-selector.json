@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_form_selectors",
+  "info": {
+    "displayName": "Form Selector",
+    "icon": "list-alt",
+    "description": "Placeholder component removed; kept minimal to avoid Strapi load errors"
+  },
+  "options": {},
+  "attributes": {
+    "form_widget": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::form-widget.form-widget"
+    }
+  }
+}

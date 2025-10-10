@@ -1,0 +1,8 @@
+{
+  "collectionName": "components_shared_cards_lists",
+  "info": { "displayName": "Cards List", "icon": "th-large", "description": "List of cards" },
+  "options": {},
+  "attributes": {
+    "cards": { "type": "json", "default": [] }
+  }
+}

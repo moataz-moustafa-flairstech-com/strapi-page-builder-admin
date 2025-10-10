@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_selection_items",
+  "info": { "displayName": "Selection Item", "icon": "tag", "description": "Key/value item for selection lists" },
+  "options": {},
+  "attributes": {
+    "key": { "type": "string" },
+    "value": { "type": "string" }
+  }
+}

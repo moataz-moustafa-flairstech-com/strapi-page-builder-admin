@@ -41,8 +41,32 @@
       "component": "shared.page-styling-options",
       "required": false
     },
+    "tenant_id": {
+      "type": "string",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": false
+        }
+      }
+    },
     "layout_structure": {
       "type": "json"
+    },
+    "header_tags": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.page-header-tag"
+    },
+    "css_string": {
+      "type": "text",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": true
+        }
+      }
+    },
+    "parent_page_document_id": {
+      "type": "string"
     }
   }
 }

@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_form_text_inputs",
+  "info": {
+    "displayName": "Form Text Input ",
+    "icon": "font",
+    "description": "Placeholder component removed; kept minimal to avoid Strapi load errors"
+  },
+  "options": {},
+  "attributes": {
+    "name": { "type": "string" },
+    "placeholder": { "type": "string" },
+    "defaultValue": { "type": "string" },
+    "text_type": { "type": "enumeration", "enum": ["text", "password", "text_area"], "default": "text" }
+
+  }
+}

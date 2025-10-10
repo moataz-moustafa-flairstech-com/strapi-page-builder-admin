@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_facebook_feeds",
+  "info": { "displayName": "Facebook Feed", "icon": "facebook", "description": "Embed Facebook posts/feed" },
+  "options": {},
+  "attributes": {
+    "pageUrl": { "type": "string" },
+    "embedHtml": { "type": "text" }
+  }
+}

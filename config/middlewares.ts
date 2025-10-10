@@ -1,4 +1,5 @@
 export default [
+  'global::request-logger',
   'strapi::logger',
   'strapi::errors',
   'strapi::security',
@@ -7,6 +8,7 @@ export default [
   'strapi::query',
   'strapi::body',
   'strapi::session',
+  'global::tenant',
   'strapi::favicon',
   'strapi::public',
 ];

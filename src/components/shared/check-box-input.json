@@ -1,0 +1,9 @@
+{
+  "collectionName": "components_shared_check_box_inputs",
+  "info": { "displayName": "Check Box Input", "icon": "check-square", "description": "Checkbox input" },
+  "options": {},
+  "attributes": {
+    "name": { "type": "string" },
+    "checked": { "type": "boolean", "default": false }
+  }
+}

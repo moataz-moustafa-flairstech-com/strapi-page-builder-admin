@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "form_widgets",
+  "info": {
+    "singularName": "form-widget",
+    "pluralName": "form-widgets",
+    "displayName": "Form Widget",
+    "description": "Form widget collection type"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "mainField": "name"
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "action": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string",
+      "pluginOptions": {
+        "content-manager": {
+          "visible": false
+        }
+      }
+    },
+    "blocks": {
+      "type": "dynamiczone",
+      "components": [
+        "shared.form-text-input",
+        "shared.form-file-input",
+        "shared.drop-down-list",
+        "shared.radio-buttons-list",
+        "shared.check-box-input",
+        "shared.button-input",
+        "shared.selection-item"
+      ]
+    }
+  }
+}
