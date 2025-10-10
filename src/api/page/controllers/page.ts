@@ -7,6 +7,7 @@ import { factories } from '@strapi/strapi';
 export default factories.createCoreController('api::page.page', ({ strapi }) => ({
   // Extend core controller with validation hook for create/update
   async create(ctx) {
+    strapi.log.info('Page create requested with body: ' + JSON.stringify(ctx.request.body));
     // No placeholder identifier validation required after removing placeholder components
     const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
 
@@ -14,13 +15,225 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
       return ctx.badRequest('Missing tenant_id in token');
     }
 
+    strapi.log.info('Creating page: calling base class for tenant_id=' + tokenTenant + ' with body: ' + JSON.stringify(ctx.request.body));
     // ensure tenant_id is set from token and mandatory
     ctx.request.body = ctx.request.body || {};
     ctx.request.body.data = ctx.request.body.data || {};
     ctx.request.body.data.tenant_id = tokenTenant;
-
-    return await super.create(ctx);
+    strapi.log.info('Creating page: second log calling base class for tenant_id=' + tokenTenant + ' with body: ' + JSON.stringify(ctx.request.body));
+    const created = await super.create(ctx);
+    return created;
   },
+
+
+  async CopyPage(ctx) {
+      // Update by documentId (draft) and ensure tenant matches. Also update published version if present.
+    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+    strapi.log.info('CopyPage: Page copy requested with ctx.params: ' + JSON.stringify(ctx.params));
+    const { id, id2 } = ctx.params || {};
+
+    const copyFromDocumentId = id;
+    strapi.log.info('CopyPage: documentId: ' + copyFromDocumentId);
+    if (!copyFromDocumentId) return ctx.badRequest('CopyPage: Entity is missing documentId');
+
+
+
+    const copyToDocumentId = id2;
+    strapi.log.info('CopyPage: copyToDocumentId: ' + copyToDocumentId);
+    if (!copyToDocumentId) return ctx.badRequest('CopyPage: Entity is missing copyToDocumentId');
+
+    try{
+      if(copyFromDocumentId && copyToDocumentId) {
+        strapi.log.info('Copying layout_structure from documentId=' + copyFromDocumentId + ' to new page documentId=' + copyToDocumentId);
+        // Fetch the draft page to copy from
+        const sourceDraft = await strapi.documents('api::page.page').findOne({
+          documentId: String(copyFromDocumentId),
+          status: 'draft',
+          populate: {
+            sections: {
+               populate: {
+                blocks: true
+              }
+            }, 
+            page_template: true
+        }
+      });
+
+        if (sourceDraft) {
+          // Helper function to remove IDs from any object
+          const removeIds = (obj: any): any => {
+            if (!obj || typeof obj !== 'object') return obj;
+            
+            if (Array.isArray(obj)) {
+              return obj.map(removeIds);
+            }
+            
+            const { id, ...objWithoutId } = obj;
+            const result: any = {};
+            
+            for (const [key, value] of Object.entries(objWithoutId)) {
+              result[key] = removeIds(value);
+            }
+            
+            return result;
+          };
+
+          // Helper function to ensure required fields for specific components
+          const processBlock = (block: any): any => {
+            const cleanBlock = removeIds(block);
+            
+            switch (cleanBlock.__component) {
+              case 'shared.external-content':
+                return {
+                  ...cleanBlock,
+                  name: cleanBlock.name ?? "",
+                  url: cleanBlock.url ?? "",
+                  live: cleanBlock.live ?? false,
+                  refresh_rate: cleanBlock.refresh_rate ?? 0,
+                };
+              
+              case 'shared.accordion-list':
+                return {
+                  ...cleanBlock,
+                  items: Array.isArray(cleanBlock.items) 
+                    ? cleanBlock.items.map((item: any) => ({
+                        ...removeIds(item),
+                        title: item.title || "",
+                        description: item.description || ""
+                      }))
+                    : cleanBlock.items
+                };
+              
+              case 'shared.media':
+                return {
+                  ...cleanBlock,
+                  file: cleanBlock.file ? removeIds(cleanBlock.file) : null
+                };
+              
+              case 'shared.slider':
+                return {
+                  ...cleanBlock,
+                  files: Array.isArray(cleanBlock.files) 
+                    ? cleanBlock.files.map(removeIds)
+                    : cleanBlock.files
+                };
+              
+              case 'shared.cards-list':
+                return {
+                  ...cleanBlock,
+                  cards: Array.isArray(cleanBlock.cards) 
+                    ? cleanBlock.cards.map(removeIds)
+                    : cleanBlock.cards
+                };
+              
+              case 'shared.drop-down-list':
+                return {
+                  ...cleanBlock,
+                  options: Array.isArray(cleanBlock.options) 
+                    ? cleanBlock.options.map(removeIds)
+                    : cleanBlock.options
+                };
+              
+              case 'shared.radio-buttons-list':
+                return {
+                  ...cleanBlock,
+                  options: Array.isArray(cleanBlock.options) 
+                    ? cleanBlock.options.map(removeIds)
+                    : cleanBlock.options
+                };
+              
+              case 'shared.bulleted-list':
+                return {
+                  ...cleanBlock,
+                  items: Array.isArray(cleanBlock.items) 
+                    ? cleanBlock.items.map(removeIds)
+                    : cleanBlock.items
+                };
+              
+              case 'shared.grid':
+                return {
+                  ...cleanBlock,
+                  columns: Array.isArray(cleanBlock.columns) 
+                    ? cleanBlock.columns.map(removeIds)
+                    : cleanBlock.columns
+                };
+              
+              case 'shared.layout-repeater':
+                return {
+                  ...cleanBlock,
+                  items: Array.isArray(cleanBlock.items) 
+                    ? cleanBlock.items.map(removeIds)
+                    : cleanBlock.items
+                };
+              
+              case 'shared.article-selector':
+                return {
+                  ...cleanBlock,
+                  article: cleanBlock.article ? removeIds(cleanBlock.article) : null
+                };
+              
+              case 'shared.form-selector':
+                return {
+                  ...cleanBlock,
+                  form: cleanBlock.form ? removeIds(cleanBlock.form) : null
+                };
+              
+              case 'shared.seo':
+                return {
+                  ...cleanBlock,
+                  meta_title: cleanBlock.meta_title || "",
+                  meta_description: cleanBlock.meta_description || ""
+                };
+              
+              // Handle all other component types with generic ID removal
+              default:
+                return cleanBlock;
+            }
+          };
+
+          // Copy sections (including blocks) and layout_structure into the new page
+          const updated = await strapi.documents('api::page.page').update({
+            documentId: copyToDocumentId,
+            status: 'draft',
+            data: {
+              sections: Array.isArray(sourceDraft.sections)
+                ? sourceDraft.sections.map(section => {
+                    const cleanSection = removeIds(section);
+                    return {
+                      ...cleanSection,
+                      blocks: Array.isArray(cleanSection.blocks)
+                        ? cleanSection.blocks.map(processBlock)
+                        : cleanSection.blocks,
+                      style: cleanSection.style ? removeIds(cleanSection.style) : cleanSection.style
+                    };
+                  })
+                : sourceDraft.sections,
+              layout_structure: sourceDraft.layout_structure,
+              page_template: {id: sourceDraft?.page_template?.id || null}
+            }
+          });
+
+          return updated;
+        } else {
+          strapi.log.warn(`Source draft page not found for documentId=${copyFromDocumentId}`);
+          return ctx.notFound('Source Document does not exist');
+  
+        }
+
+      }
+
+    }
+    catch (err) {
+      strapi.log.error('Error creating page with copy from ' + copyFromDocumentId + ':', err);
+      return ctx.internalServerError('CopyPage: Entity is missing copyToDocumentId:' + err);
+    
+    }
+
+    return ctx.internalServerError('CopyPage: Entity is missing copyToDocumentId');
+
+  
+  },
+
 
   async tenantUpdate(ctx) {
       // Update by documentId (draft) and ensure tenant matches. Also update published version if present.
@@ -318,6 +531,92 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
     } catch (err) {
       strapi.log.error('Error in custom find for pages:', err);
       return ctx.internalServerError('Error fetching pages');
+    }
+  },
+
+  // Delete all versions (draft and published) of a page by documentId
+  async DeleteByDocumentId(ctx) {
+    const { documentId } = ctx.params || {};
+    const tokenTenant = ctx.state?.tenantIdFromToken || ctx.state?.jwtPayload?.tenant_id || ctx.state?.user?.tenant_id;
+
+    if (!documentId) {
+      return ctx.badRequest('Missing documentId parameter');
+    }
+
+    try {
+      strapi.log.info(`DeleteByDocumentId: Attempting to delete all versions of page with documentId: ${documentId}`);
+
+      // First, verify tenant ownership by checking if any version exists and belongs to the user's tenant
+      const draftCheck = await strapi.documents('api::page.page').findOne({
+        documentId,
+        status: 'draft',
+        populate: {} as any
+      });
+
+      const publishedCheck = await strapi.documents('api::page.page').findOne({
+        documentId,
+        status: 'published',
+        populate: {} as any
+      });
+
+      // If neither draft nor published exists, return 404
+      if (!draftCheck && !publishedCheck) {
+        strapi.log.warn(`DeleteByDocumentId: No page found with documentId: ${documentId}`);
+        return ctx.notFound(`No page found with documentId: ${documentId}`);
+      }
+
+      // Check tenant ownership on whichever version exists
+      const existingPage = draftCheck || publishedCheck;
+      const existingTenant = (existingPage as any)?.tenant_id;
+      
+      if (typeof tokenTenant !== 'undefined' && existingTenant !== tokenTenant) {
+        strapi.log.warn(`DeleteByDocumentId: Forbidden - tenant mismatch for documentId: ${documentId}`);
+        return ctx.forbidden('You are not allowed to delete this page');
+      }
+
+      // Delete draft version if it exists
+      if (draftCheck) {
+        try {
+          await strapi.documents('api::page.page').delete({
+            documentId,
+            status: 'draft'
+          });
+          strapi.log.info(`DeleteByDocumentId: Successfully deleted draft version of documentId: ${documentId}`);
+        } catch (err) {
+          const errorMsg = `Failed to delete draft version: ${err instanceof Error ? err.message : String(err)}`;
+          strapi.log.error(`DeleteByDocumentId: ${errorMsg}`, err);
+        }
+      }
+
+      // Delete published version if it exists
+      if (publishedCheck) {
+        try {
+          await strapi.documents('api::page.page').delete({
+            documentId,
+            status: 'published'
+          });
+          strapi.log.info(`DeleteByDocumentId: Successfully deleted published version of documentId: ${documentId}`);
+        } catch (err) {
+          const errorMsg = `Failed to delete published version: ${err instanceof Error ? err.message : String(err)}`;
+          strapi.log.error(`DeleteByDocumentId: ${errorMsg}`, err);
+        }
+      }
+
+      // Success - return 204 No Content
+      strapi.log.info(`DeleteByDocumentId: Successfully deleted all  versions of documentId: ${documentId}`);
+      return ctx.send(null, 204);
+
+    } catch (err) {
+      const errorMessage = `Unexpected error while deleting page versions for documentId ${documentId}: ${err instanceof Error ? err.message : String(err)}`;
+      strapi.log.error(`DeleteByDocumentId: ${errorMessage}`, err);
+      
+      return ctx.send(
+        { 
+          error: errorMessage,
+          details: err instanceof Error ? err.stack : String(err)
+        },
+        500
+      );
     }
   }
 
