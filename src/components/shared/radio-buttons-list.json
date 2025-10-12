@@ -4,6 +4,8 @@
   "options": {},
   "attributes": {
     "items": { "type": "component", "repeatable": true, "component": "shared.selection-item" },
-    "defaultKey": { "type": "string" }
+    "defaultKey": { "type": "string" },
+    "value_required": { "type": "boolean", "default": false },
+    "css_style": { "type": "string"}
   }
 }

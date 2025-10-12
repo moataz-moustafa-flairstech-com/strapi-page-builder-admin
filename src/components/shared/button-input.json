@@ -4,6 +4,7 @@
   "options": {},
   "attributes": {
     "name": { "type": "string" },
-    "type": { "type": "enumeration", "enum": ["submit", "click"], "default": "click" }
+    "type": { "type": "enumeration", "enum": ["submit", "click"], "default": "click" },
+    "css_style": { "type": "string"}    
   }
 }

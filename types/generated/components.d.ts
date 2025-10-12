@@ -57,6 +57,7 @@ export interface SharedButtonInput extends Struct.ComponentSchema {
     icon: 'square-o';
   };
   attributes: {
+    css_style: Schema.Attribute.String;
     name: Schema.Attribute.String;
     type: Schema.Attribute.Enumeration<['submit', 'click']> &
       Schema.Attribute.DefaultTo<'click'>;
@@ -84,6 +85,9 @@ export interface SharedCheckBoxInput extends Struct.ComponentSchema {
   };
   attributes: {
     checked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    checked_required: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    css_style: Schema.Attribute.String;
     name: Schema.Attribute.String;
   };
 }
@@ -96,9 +100,12 @@ export interface SharedDropDownList extends Struct.ComponentSchema {
     icon: 'caret-down';
   };
   attributes: {
+    css_style: Schema.Attribute.String;
     defaultKey: Schema.Attribute.String;
     items: Schema.Attribute.Component<'shared.selection-item', true>;
     multiselect: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    value_required: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
   };
 }
 
@@ -139,7 +146,10 @@ export interface SharedFormFileInput extends Struct.ComponentSchema {
   };
   attributes: {
     accept: Schema.Attribute.String & Schema.Attribute.DefaultTo<'*'>;
+    css_style: Schema.Attribute.String;
     name: Schema.Attribute.String;
+    value_required: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
   };
 }
 
@@ -166,11 +176,14 @@ export interface SharedFormTextInput extends Struct.ComponentSchema {
     icon: 'font';
   };
   attributes: {
+    css_style: Schema.Attribute.String;
     defaultValue: Schema.Attribute.String;
     name: Schema.Attribute.String;
     placeholder: Schema.Attribute.String;
     text_type: Schema.Attribute.Enumeration<['text', 'password', 'text_area']> &
       Schema.Attribute.DefaultTo<'text'>;
+    value_required: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
   };
 }
 
@@ -421,8 +434,11 @@ export interface SharedRadioButtonsList extends Struct.ComponentSchema {
     icon: 'dot-circle-o';
   };
   attributes: {
+    css_style: Schema.Attribute.String;
     defaultKey: Schema.Attribute.String;
     items: Schema.Attribute.Component<'shared.selection-item', true>;
+    value_required: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
   };
 }
 

@@ -24,6 +24,22 @@
     "action": {
       "type": "string"
     },
+    "method": {
+      "type": "enumeration",
+      "enum": [
+        "GET",
+        "POST"
+      ],
+      "default": "POST"
+    },
+    "target": {
+      "type": "enumeration",
+      "enum": [
+        "_self",
+        "_blank"
+      ],
+      "default": "_self"
+    },
     "tenant_id": {
       "type": "string",
       "pluginOptions": {
@@ -40,8 +56,7 @@
         "shared.drop-down-list",
         "shared.radio-buttons-list",
         "shared.check-box-input",
-        "shared.button-input",
-        "shared.selection-item"
+        "shared.button-input"
       ]
     }
   }

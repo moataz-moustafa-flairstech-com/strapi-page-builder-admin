@@ -10,7 +10,9 @@
     "name": { "type": "string" },
     "placeholder": { "type": "string" },
     "defaultValue": { "type": "string" },
-    "text_type": { "type": "enumeration", "enum": ["text", "password", "text_area"], "default": "text" }
+    "text_type": { "type": "enumeration", "enum": ["text", "password", "text_area"], "default": "text" },
+    "value_required": { "type": "boolean", "default": false },
+    "css_style": { "type": "string"}
 
   }
 }

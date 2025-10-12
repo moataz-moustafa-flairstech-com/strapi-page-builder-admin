@@ -4,6 +4,8 @@
   "options": {},
   "attributes": {
     "name": { "type": "string" },
-    "checked": { "type": "boolean", "default": false }
+    "checked": { "type": "boolean", "default": false },
+    "checked_required": { "type": "boolean", "default": false },
+    "css_style": { "type": "string"}
   }
 }

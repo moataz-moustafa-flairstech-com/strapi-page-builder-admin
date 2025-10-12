@@ -8,6 +8,8 @@
   "options": {},
   "attributes": {
     "name": { "type": "string" },
-    "accept": { "type": "string", "default": "*" }
+    "accept": { "type": "string", "default": "*" },
+    "value_required": { "type": "boolean", "default": false },
+    "css_style": { "type": "string"}
   }
 }

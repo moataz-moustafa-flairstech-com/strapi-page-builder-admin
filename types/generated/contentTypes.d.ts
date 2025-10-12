@@ -552,7 +552,6 @@ export interface ApiFormWidgetFormWidget extends Struct.CollectionTypeSchema {
         'shared.radio-buttons-list',
         'shared.check-box-input',
         'shared.button-input',
-        'shared.selection-item',
       ]
     >;
     createdAt: Schema.Attribute.DateTime;
@@ -564,10 +563,14 @@ export interface ApiFormWidgetFormWidget extends Struct.CollectionTypeSchema {
       'api::form-widget.form-widget'
     > &
       Schema.Attribute.Private;
+    method: Schema.Attribute.Enumeration<['GET', 'POST']> &
+      Schema.Attribute.DefaultTo<'POST'>;
     name: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Unique;
     publishedAt: Schema.Attribute.DateTime;
+    target: Schema.Attribute.Enumeration<['_self', '_blank']> &
+      Schema.Attribute.DefaultTo<'_self'>;
     tenant_id: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         'content-manager': {
