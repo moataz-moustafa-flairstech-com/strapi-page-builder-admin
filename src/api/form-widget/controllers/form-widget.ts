@@ -144,6 +144,18 @@ export default factories.createCoreController(('api::form-widget.form-widget') a
 			if (typeof tenantFilter !== 'undefined') {
 				qs.filters = { tenant_id: tenantFilter };
 			}
+			
+			qs.populate = {
+				blocks: {
+					on: {
+						'shared.form-text-input': true,
+						'shared.form-file-input': true,			
+						'shared.drop-down-list': { populate: { items: true } },
+						'shared.radio-buttons-list': { populate: { items: true } },
+						'shared.check-box-input': true,
+						'shared.button-input': true
+					}
+			}};
 
 			return await super.find(ctx);
 		} catch (err) {
@@ -151,4 +163,30 @@ export default factories.createCoreController(('api::form-widget.form-widget') a
 			return ctx.internalServerError('Error fetching form widgets');
 		}
 	},
+	async findByDocumentId(ctx) {
+		try{
+			const { documentId } = ctx.params || {};
+			if (!documentId) return ctx.badRequest('Missing documentId');
+			const qs: any = ctx.query || {};
+			qs.filters = { documentId: documentId };
+			qs.populate = {
+				blocks: {
+					on: {	
+						'shared.form-text-input': true,
+						'shared.form-file-input': true,
+						'shared.drop-down-list': { populate: { items: true } },
+						'shared.radio-buttons-list': { populate: { items: true } },
+						'shared.check-box-input': true,
+						'shared.button-input': true
+					}
+				}
+			};
+
+			return await super.find(ctx);
+		} catch (err) {
+			strapi.log.error('Error in form-widget find:', err);
+			return ctx.internalServerError('Error fetching form widgets');
+		}
+
+	}
 }));

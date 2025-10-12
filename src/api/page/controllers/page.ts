@@ -351,7 +351,7 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
                 'shared.drop-down-list': true,
                 'shared.facebook-feed': true,
                 'shared.form-file-input': true,
-                'shared.form-selector': true,
+                'shared.form-selector': { populate: { form_widget: true } },
                 'shared.form-text-input': true,
                 'shared.google-map-widget': true,
                 'shared.grid': true,
