@@ -182,7 +182,11 @@ export default factories.createCoreController(('api::form-widget.form-widget') a
 				}
 			};
 
-			return await super.find(ctx);
+			const results = await super.find(ctx);
+			if (results?.data && Array.isArray(results.data) && results.data.length > 0) {
+				return ctx.send({data: results.data[0]});
+			}
+			return null;
 		} catch (err) {
 			strapi.log.error('Error in form-widget find:', err);
 			return ctx.internalServerError('Error fetching form widgets');
