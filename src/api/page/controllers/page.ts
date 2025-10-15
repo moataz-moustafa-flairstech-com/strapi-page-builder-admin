@@ -388,7 +388,7 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
                 'shared.quote': true,
                 'shared.rich-text': true,
                 'shared.slider': { populate: { files: true } },
-                'shared.accordion-list': true,
+                'shared.accordion-list': { populate: { items: true } },
                 'shared.accordion-list-item': true,
                 'shared.article-selector': { populate: { article: true } },
                 'shared.bulleted-list': true,
