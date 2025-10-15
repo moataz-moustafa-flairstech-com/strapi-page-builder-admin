@@ -681,7 +681,7 @@ export interface ApiPagePage extends Struct.CollectionTypeSchema {
           visible: true;
         };
       }>;
-    header_tags: Schema.Attribute.Component<'shared.page-header-tag', true>;
+    header_tags: Schema.Attribute.String;
     layout_structure: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::page.page'> &

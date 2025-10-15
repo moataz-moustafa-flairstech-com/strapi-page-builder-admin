@@ -260,7 +260,54 @@ export default factories.createCoreController('api::page.page', ({ strapi }) => 
     }
 
     strapi.log.info('Updating draft documentId=' + documentId + ' (internal id=' + ctx.params.id + ') for tenant_id=' + existingTenant);
-    const updateData = ctx.request?.body?.data || {};
+    strapi.log.info('Update data: ' + JSON.stringify(ctx.request?.body));
+
+    let updateData: any = ctx.request?.body?.data || {};
+    // sanitize incoming payload to avoid nested id wrappers and internal id fields
+    const removeIds = (obj: any): any => {
+      if (!obj || typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) return obj.map(removeIds);
+      const out: any = {};
+      for (const [k, v] of Object.entries(obj)) {
+        if (k === 'id') continue; // drop internal id fields
+        out[k] = removeIds(v as any);
+      }
+      return out;
+    };
+
+    // Normalize page_template that may be sent as { id: { id: 4 } }
+    try {
+      if (updateData.page_template && typeof updateData.page_template === 'object') {
+        if (updateData.page_template.id && typeof updateData.page_template.id === 'object' && updateData.page_template.id.id) {
+          updateData.page_template = { id: updateData.page_template.id.id };
+        }
+      }
+
+      // Normalize style.background_image to { id: <num> } if a full file object was supplied
+      if (updateData.style && updateData.style.background_image && typeof updateData.style.background_image === 'object') {
+        if (updateData.style.background_image.id) {
+          updateData.style = updateData.style || {};
+          updateData.style.background_image = { id: updateData.style.background_image.id };
+        }
+      }
+
+      // Remove component/internal ids from sections and blocks so Strapi validation doesn't reject them
+      if (Array.isArray(updateData.sections)) {
+        updateData.sections = updateData.sections.map((s: any) => {
+          const cleanSection = removeIds(s);
+          if (cleanSection.blocks && Array.isArray(cleanSection.blocks)) {
+            cleanSection.blocks = cleanSection.blocks.map((b: any) => removeIds(b));
+          }
+          return cleanSection;
+        });
+      }
+
+      // Finally run a full removeIds on updateData to sanitize any remaining internal ids
+      updateData = removeIds(updateData);
+    } catch (e) {
+      strapi.log.error('Error sanitizing updateData before documents.update', e);
+    }
+
     const updated = await strapi.documents('api::page.page').update({
       documentId,
       status: 'draft',
